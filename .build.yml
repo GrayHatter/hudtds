@@ -1,0 +1,11 @@
+image: archlinux
+packages:
+  - rsync
+sources:
+  - https://git.cmdline.org/~grayhatter/hudtds
+tasks:
+  - build: |
+      cd hudtds
+      pwd
+      ls -la
+       make
