@@ -1,6 +1,9 @@
 image: archlinux
 packages:
   - rsync
+  - arm-linux-gnueabihf-gcc-stage2
+  - arm-linux-gnueabihf-glibc
+  - arm-linux-gnueabihf-binutils
 sources:
   - https://git.cmdline.org/~grayhatter/hudtds
 tasks:
@@ -8,4 +11,4 @@ tasks:
       cd hudtds
       pwd
       ls -la
-       make
+      make

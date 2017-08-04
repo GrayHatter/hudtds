@@ -21,8 +21,8 @@ void* hud_snd_play(void *p)
     }
 
     OggVorbis_File vf;
-    FILE *f = fopen("test2.ogg", "r");
-    int err = ov_open(f, &vf, NULL, 0);
+    // FILE *f = fopen("test2.ogg", "r");
+    int err = ov_fopen("test2.ogg" , &vf);
     if (err != 0) {
         exit(10);
     }
@@ -32,40 +32,44 @@ void* hud_snd_play(void *p)
     printf("Encoded by: %s\n\n", ov_comment(&vf, -1)->vendor);
 
     snd_err = snd_pcm_set_params(handle, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED,
-                                 vi->channels, vi->rate, 0, 500000);
+                                 vi->channels, vi->rate, 1, vi->rate);
     if (snd_err < 0) {
-        /* 0.5sec */
         printf("Playback open error: %s\n", snd_strerror(snd_err));
         exit(EXIT_FAILURE);
     }
+    printf("expecting %f seconds of playback\n", ov_time_total(&vf, -1));
 
-
-    char *buffer = malloc(vi->channels * vi->rate);
+    char *buffer = malloc(100 * vi->channels * vi->rate);
     if (!buffer) {
         exit(9);
     }
 
+    snd_pcm_sframes_t frames;
+    int current_section;
+    long ret = 0;
+    while (1) {
+        ret = ov_read(&vf, buffer, sizeof(buffer), 0, 1, 0, &current_section);
+        int play_count = ret / vi->channels;
+        if (ret > 0) {
+            frames = snd_pcm_writei(handle, buffer, play_count);
+            if (frames == -EPIPE) {
+                snd_pcm_prepare(handle);
+                frames = snd_pcm_writei(handle, buffer, play_count);
+            }
 
-    while(1) {
-        snd_pcm_sframes_t frames;
-        int current_section;
-        long ret = ov_read(&vf, buffer, sizeof(buffer), 0, 1, 0, &current_section);
-        if (!ret) {
-            printf("error ret == 0\n");
-            break;
+            if (frames < 0) {
+                frames = snd_pcm_recover(handle, frames, 1);
+                if (frames < 0) {
+                    printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
+                    break;
+                }
+            }
         } else if(ret < 0) {
             printf("error ret < 0\n");
             /* error in the stream. */
         } else {
-            frames = snd_pcm_writei(handle, buffer, ret / vi->channels);
-            if (frames < 0) {
-                frames = snd_pcm_recover(handle, frames, 0);
-            }
-
-            if (frames < 0) {
-                printf("snd_pcm_writei failed: %s\n", snd_strerror(err));
-                break;
-            }
+            printf("error ret == 0\n");
+            break;
        }
     }
 
