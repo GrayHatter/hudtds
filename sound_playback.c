@@ -3,10 +3,10 @@
  *
  * Compile:
  * $ cc -o play sound_playback.c -lasound
- * 
+ *
  * Usage:
  * $ ./play <sample_rate> <channels> <seconds> < <file>
- * 
+ *
  * Examples:
  * $ ./play 44100 2 5 < /dev/urandom
  * $ ./play 22050 1 8 < /path/to/file.wav
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 
 	/* Open the PCM device in playback mode */
 	if (pcm = snd_pcm_open(&pcm_handle, PCM_DEVICE,
-					SND_PCM_STREAM_PLAYBACK, 0) < 0) 
+					SND_PCM_STREAM_PLAYBACK, 0) < 0)
 		printf("ERROR: Can't open \"%s\" PCM device. %s\n",
 					PCM_DEVICE, snd_strerror(pcm));
 
@@ -58,17 +58,17 @@ int main(int argc, char **argv) {
 
 	/* Set parameters */
 	if (pcm = snd_pcm_hw_params_set_access(pcm_handle, params,
-					SND_PCM_ACCESS_RW_INTERLEAVED) < 0) 
+					SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
 		printf("ERROR: Can't set interleaved mode. %s\n", snd_strerror(pcm));
 
 	if (pcm = snd_pcm_hw_params_set_format(pcm_handle, params,
-						SND_PCM_FORMAT_S16_LE) < 0) 
+						SND_PCM_FORMAT_S16_LE) < 0)
 		printf("ERROR: Can't set format. %s\n", snd_strerror(pcm));
 
-	if (pcm = snd_pcm_hw_params_set_channels(pcm_handle, params, channels) < 0) 
+	if (pcm = snd_pcm_hw_params_set_channels(pcm_handle, params, channels) < 0)
 		printf("ERROR: Can't set channels number. %s\n", snd_strerror(pcm));
 
-	if (pcm = snd_pcm_hw_params_set_rate_near(pcm_handle, params, &rate, 0) < 0) 
+	if (pcm = snd_pcm_hw_params_set_rate_near(pcm_handle, params, &rate, 0) < 0)
 		printf("ERROR: Can't set rate. %s\n", snd_strerror(pcm));
 
 	/* Write parameters */
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 	snd_pcm_hw_params_get_rate(params, &tmp, 0);
 	printf("rate: %d bps\n", tmp);
 
-	printf("seconds: %d\n", seconds);	
+	printf("seconds: %d\n", seconds);
 
 	/* Allocate buffer to hold single period */
 	snd_pcm_hw_params_get_period_size(params, &frames, 0);

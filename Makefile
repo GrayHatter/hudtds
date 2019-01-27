@@ -1,19 +1,34 @@
 CC = arm-linux-gnueabihf-gcc
 LD = arm-linux-gnueabihf-ld
 
-OBJ = hud.o sound.o wl/keyboard.o
+OBJ = hud.o sound.o wayland.o
+OBJ += wl/keyboard.o wl/touch.o wl/draw.o
 
-CFLAGS := -Wall -Wextra -Werror -std=c11 -fPIC -mcpu=arm7 -O3 $(CFLAGS)
-LIBS   := -lasound -lwayland-client -lpthread -lm -ldl -lrt -lffi -lgcc_s -lvorbis -lvorbisfile -logg
+CFLAGS := -Wall -Wextra -Werror $(CFLAGS)
+
+CFLAGS += -std=c11 -O0 -mcpu=arm7
+
+CFLAGS += -mfloat-abi=hard
+CFLAGS += --sysroot=/usr/arm-linux-gnueabihf
+CFLAGS += -L/home/grayhatter/mazda/libs2/lib/
+
+LIBS   := -lwayland-client -lffi -lgcc_s -lwayland-server -ldl -lrt -lpthread -lm -lasound -lvorbis -lvorbisfile -logg
 
 %.o: %.c
 	$(CC) -c -o $@ $(INCLUDE) -I$(shell dirname $<) $(CFLAGS) $<
 
 hudtds: $(OBJ)
-	$(CC) -o hudtds $(OBJ) $(CFLAGS) $(LIBS)
+	# $(LD) --verbose -o hudtds $(OBJ) $(LDFLAGS) $(LIBS)
+	$(CC) $(OBJ) $(CFLAGS) $(LIBS) /home/grayhatter/mazda/libs2/lib/libc.so.6 -o $@
 
 all: hudtds
 
+install: hudtds
+	cp hudtds /home/grayhatter/mazda/live/tmp/root/
+	cp test.ogg /home/grayhatter/mazda/live/tmp/root/
+	cp test2.ogg /home/grayhatter/mazda/live/tmp/root/
+	cp run-hud.sh /home/grayhatter/mazda/live/tmp/root/
+
 clean:
-	rm *.o
-	rm hudtds
+	rm $(OBJ) || true
+	rm hudtds || true
