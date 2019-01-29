@@ -2,6 +2,7 @@
 #include "wayland.h"
 
 
+#include "wl/ui.h"
 #include "wl/keyboard.h"
 #include "wl/touch.h"
 
@@ -14,6 +15,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
+struct wl_interface  *ivi_shell;
 struct wl_compositor *compositor;
 struct wl_display    *display;
 struct wl_seat       *seat;
@@ -207,6 +210,78 @@ struct wl_shell_surface *init_root_surface(void)
     return shell_surface;
 }
 
+extern struct wl_interface wl_ivi_shell_interface;
+extern struct wl_interface wl_ivi_interface;
+
+
+char *wl_ivi_pack_surface_id(uint32_t id);
+
+static void ivi_screen_cb(void *data, struct wl_interface *interface, uint32_t id, void *thing)
+{
+    (void) data;
+    (void) interface;
+    // (void) thing;
+    // char *name = wl_ivi_pack_surface_id(id);
+    LOG_E("IVI screen cb %x %x\n", id, (int)thing);
+}
+
+static void ivi_default(void *data, struct wl_interface *ivi_interface, void *p, void *pp)
+{
+    (void) data;
+    (void) ivi_interface;
+    LOG_E("IVI default 1 %x %x\n", (int)p, (int)pp);
+}
+
+
+static void ivi_shell_create(void *data, struct wl_interface *interface, char *name, void *thing, uint32_t id2)
+{
+    (void) data;
+    (void) interface;
+    // (void) thing;
+    // char *name = wl_ivi_pack_surface_id(id);
+    LOG_E("IVI SHELL created %s %x %x\n", name, (int)thing, id2);
+}
+
+static void ivi_shell_destrory(void *data, struct wl_interface *ivi_interface, void *p, void *pp)
+{
+    (void) data;
+    (void) ivi_interface;
+    LOG_E("IVI SHELL destroy %x %x\n", (int)p, (int)pp);
+}
+
+static void ivi_shell_other(void *data, void *ivi, void *p)
+{
+    (void) data;
+    LOG_E("IVI SHELL destroy %x %x\n", (int)ivi, (int)p);
+}
+
+
+static const struct wl_ivi_shell_listener {
+    void (*create)(void *data,
+        struct wl_interface *ivi_interface,
+        char *name,
+        void *screen,
+        uint32_t id2);
+    void (*destroy)(void *data, struct wl_interface *, void *, void *);
+    void (*other)(void *, void *, void *);
+} wl_ivi_shell_listener = {
+    .create = ivi_shell_create,
+    .destroy = ivi_shell_destrory,
+    .other = ivi_shell_other,
+
+};
+
+static const struct wl_ivi_listener {
+    void (*screen)(void *data,
+        struct wl_interface *ivi_interface,
+        uint32_t id,
+        void *screen);
+    void (*one)(void *data, struct wl_interface *, void *, void *);
+} wl_ivi_listener = {
+    .screen = ivi_screen_cb,
+    .one = ivi_default,
+};
+
 
 static void registry_global(void *data, struct wl_registry *registry, uint32_t id, const char *interface,
                             uint32_t version)
@@ -227,6 +302,16 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t i
         LOG_E("  --  Setting Seat");
         seat = wl_registry_bind(registry, id, &wl_seat_interface, min(version, 2));
         wl_seat_add_listener(seat, &seat_listener, NULL);
+    } else if (strcmp(interface, wl_ivi_shell_interface.name) == 0) {
+        // LOG_E(" IVI shell works :D\n");
+        ivi_shell = wl_registry_bind(registry, id, &wl_ivi_shell_interface, min(version, 1));
+        wl_proxy_add_listener((struct wl_proxy *)ivi_shell, (void (**)(void))&wl_ivi_shell_listener, NULL);
+        LOG_E("IVI SHELL 0x%p", ivi_shell);
+    } else if (strcmp(interface, wl_ivi_interface.name) == 0) {
+        // LOG_E(" IVI works :D\n");
+        ivi_shell = wl_registry_bind(registry, id, &wl_ivi_interface, min(version, 1));
+        wl_proxy_add_listener((struct wl_proxy *)ivi_shell, (void (**)(void))&wl_ivi_listener, NULL);
+        LOG_E("IVI 0x%p", ivi_shell);
     }
     LOG_E("\n");
 }
@@ -239,6 +324,9 @@ static void registry_global_remove(void *data, struct wl_registry *reg, uint32_t
     (void) id;
     LOG_E("Registry_remover\n");
 }
+
+
+struct ui_panel *root_panel = NULL;
 
 
 struct wl_display *init_wayland(void)
@@ -260,18 +348,18 @@ struct wl_display *init_wayland(void)
     wl_display_dispatch(display);
     wl_display_roundtrip(display);
 
+    root_panel = init_ui();
+
     return display;
 }
 
-bool root_draw = false;
-#include "wl/draw.h"
 
 
 int do_wayland(void)
 {
-    if (!root_draw) {
-        draw_vline_c(100, 100, HEIGHT / 2, 0xff000000);
-        root_draw = true;
+
+    if (ui_iter(root_panel)) {
+
     }
 
     int res = wl_display_dispatch(display);

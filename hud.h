@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #define WIDTH 800
-#define HEIGHT 420
+#define HEIGHT 480
 #define STRIDE WIDTH * 4
 
 

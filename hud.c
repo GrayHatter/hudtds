@@ -1,5 +1,6 @@
 #include "hud.h"
 
+#include "info.h"
 #include "wayland.h"
 
 #include <stdlib.h>
@@ -23,6 +24,7 @@ int main(void)
     init_wayland();
     LOG_E("wl init done\n");
 
+    // get_info();
 
     pool = init_memory_pool();
     LOG_E("Pool done\n");

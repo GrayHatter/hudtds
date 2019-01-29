@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include <wayland-client-protocol.h>
+#include <wayland-client.h>
 
 struct pool_data {
     int fd;
@@ -13,7 +13,6 @@ struct pool_data {
 };
 
 extern struct pool_data *root_pool_data;
-
 
 
 void hud_surface_damage(int32_t x, int32_t y, int32_t w, int32_t h);

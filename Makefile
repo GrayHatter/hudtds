@@ -1,8 +1,8 @@
 CC = arm-linux-gnueabihf-gcc
 LD = arm-linux-gnueabihf-ld
 
-OBJ = hud.o sound.o wayland.o
-OBJ += wl/keyboard.o wl/touch.o wl/draw.o
+OBJ = hud.o sound.o wayland.o info.o
+OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o
 
 CFLAGS := -Wall -Wextra -Werror $(CFLAGS)
 
@@ -12,9 +12,9 @@ CFLAGS += -mfloat-abi=hard
 CFLAGS += --sysroot=/usr/arm-linux-gnueabihf
 CFLAGS += -L/home/grayhatter/mazda/libs2/lib/
 
-LIBS   := -lwayland-client -lffi -lgcc_s -lwayland-server -ldl -lrt -lpthread -lm -lasound -lvorbis -lvorbisfile -logg
+LIBS   := -lwayland-client -lwayland-ivi-shell-client  -lwayland-ivi-client -lffi -lgcc_s -lwayland-server -ldl -lrt -lpthread -lm -lasound -lvorbis -lvorbisfile -logg
 
-%.o: %.c
+%.o: %.c %.h
 	$(CC) -c -o $@ $(INCLUDE) -I$(shell dirname $<) $(CFLAGS) $<
 
 hudtds: $(OBJ)
