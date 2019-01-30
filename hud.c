@@ -1,6 +1,7 @@
 #include "hud.h"
 
 #include "info.h"
+#include "log.h"
 #include "wayland.h"
 
 #include <stdlib.h>

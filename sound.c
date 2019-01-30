@@ -2,7 +2,8 @@
 
 #include "log.h"
 
-#define _XOPEN_SOURCE 500
+#define _POSIX_C_SOURCE 200112L
+
 #include <alsa/asoundlib.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -2,9 +2,10 @@
 
 #include "../hud.h"
 #include "../wayland.h"
+#include "../log.h"
 
 
-#define CONSTRAIN_XY(x, y, pad) (x < pad || y < pad || x >= (WIDTH - pad) || y >= (HEIGHT - 2) )
+#define CONSTRAIN_SIZE(x, y, pad) (x < pad || y < pad || x >= (WIDTH - pad) || y >= (HEIGHT - 2) )
 
 
 void draw_dot_c(int32_t x, int32_t y, uint32_t c)
@@ -44,7 +45,7 @@ void draw_dot(int32_t x, int32_t y)
 
 void draw_line_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 {
-    if CONSTRAIN_XY(x, y, 2) {
+    if CONSTRAIN_SIZE(x, y, 2) {
         LOG_E("no\n");
         return;
     }
@@ -86,7 +87,7 @@ void draw_vline_c(int32_t x, int32_t y, int32_t h, uint32_t c)
         y = hh;
     }
 
-    if (CONSTRAIN_XY(x, y, 2) && CONSTRAIN_XY(x, h, 2) ) {
+    if (CONSTRAIN_SIZE(x, y, 2) && CONSTRAIN_SIZE(x, h, 2) ) {
         LOG_E("draw_vline no\n");
         return;
     }
@@ -119,57 +120,76 @@ void draw_vline_c(int32_t x, int32_t y, int32_t h, uint32_t c)
 
 void draw_hline_c(int32_t x, int32_t y, int32_t w, uint32_t c)
 {
+    if (CONSTRAIN_SIZE(x, y, 1) && CONSTRAIN_SIZE(x, w, 1) ) {
+        LOG_E("draw_vline no\n");
+        return;
+    }
+
+    uint32_t *p = root_pool_data->memory + (x - 1) + (y - 1) * WIDTH;
+    for (int rem = (w + 2); rem > 0; rem--) {
+        *p++ = c;
+    }
+    p = root_pool_data->memory + (x - 1) + y * WIDTH;
+    for (int rem = (w + 2); rem > 0; rem--) {
+        *p++ = c;
+    }
+    p = root_pool_data->memory + (x - 1) + (y + 1) * WIDTH;
+    for (int rem = (w + 2); rem > 0; rem--) {
+        *p++ = c;
+    }
+}
+
+
+void draw_square_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
+{
     if (w < x) {
         int32_t ww = w;
         w = x;
         x = ww;
     }
 
-    if (CONSTRAIN_XY(x, y, 2) && CONSTRAIN_XY(x, w, 2) ) {
+    if (h < y) {
+        int32_t hh = h;
+        h = y;
+        y = hh;
+    }
+
+    if (CONSTRAIN_SIZE(x, y, 2) && CONSTRAIN_SIZE(w, h, 2) ) {
         LOG_E("draw_vline no\n");
         return;
     }
 
-    uint32_t *p = root_pool_data->memory + (x - 1) + (y - 1) * WIDTH;
-    p[2] = c;
-    p += WIDTH;
-    p[1] = c;
-    p[2] = c;
-    p[3] = c;
-    p += WIDTH;
-    for (int i = 0; i < 3; i++) {
-        if (i == 1) {
-            p--;
-        }
-
-        for (int32_t len = w; len > 0; len--) {
+    uint32_t *p = root_pool_data->memory + x + y * WIDTH;
+    for (int32_t draw_y = h - y; draw_y > 0; draw_y--) {
+        for (int32_t draw_x = w - x; draw_x > 0; draw_x--) {
             *p++ = c;
         }
-
-        if (i == 1) {
-            *p++ = c;
-            *p++ = c;
-        }
-
         p += WIDTH;
     }
 }
 
 
-void draw_square(void) {}
+void draw_square(int32_t x, int32_t y, int32_t w, int32_t h) {
+    return draw_square_c(x, y, w, h, 0xff000000);
+}
 
 
 void draw_box_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 {
     draw_vline_c(x, y, h, c);
-    draw_vline_c(w, y, h, c);
+    draw_vline_c(x + w, y, h, c);
 
-    draw_hline_c(w, y, h, c);
+    draw_hline_c(x, y, w, c);
+    draw_hline_c(x, y + h, w, c);
 
+    hud_surface_damage(x, y, w, h);
+    hud_surface_commit();
 }
+
 
 void draw_box(int32_t x, int32_t y, int32_t w, int32_t h) {
     return draw_box_c(x, y, w, h, 0xff000000);
 }
+
 
 void draw_circle(void) {}

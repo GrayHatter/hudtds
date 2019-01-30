@@ -5,6 +5,7 @@
 
 #include "../hud.h"
 #include "../wayland.h"
+#include "../log.h"
 
 #include <stdio.h>
 
@@ -58,23 +59,25 @@ static void touch_down(void *data, struct wl_touch *wl_touch, uint32_t serial, u
     (void) time;
     (void) surface;
 
-    float x = wl_fixed_to_double(f_x);
-    float y = wl_fixed_to_double(f_y);
-    LOG_E("touch down %f %f %u\n", x, y, id);
+
+    int x = wl_fixed_to_int(f_x);
+    int y = wl_fixed_to_int(f_y);
+
+    LOG_E("touch down %i %i %u\n", x, y, id);
 
     touch_paint(x, y, id, true);
+
+    ui_root_touch_down(x, y, id, serial);
 }
 
 static void touch_up_cb(void *data, struct wl_touch *wl_touch, uint32_t serial, uint32_t time, int32_t id)
 {
     (void) data;
     (void) wl_touch;
-    (void) serial;
     (void) time;
-    (void) id;
     LOG_E("touch up\n");
 
-    ui_touch_up(wl_fixed_to_int(touches[id % N_TOUCHES].x), wl_fixed_to_int(touches[id % N_TOUCHES].y));
+    ui_root_touch_up(wl_fixed_to_int(touches[id % N_TOUCHES].x), wl_fixed_to_int(touches[id % N_TOUCHES].y), id, serial);
 }
 
 static void touch_motion(void *data, struct wl_touch *wl_touch, uint32_t time, int32_t id, wl_fixed_t f_x,
