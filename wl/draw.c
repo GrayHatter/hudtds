@@ -157,7 +157,7 @@ void draw_square(int32_t x, int32_t y, int32_t w, int32_t h) {
 
 void draw_box_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 {
-    LOG_E("draw box %i %i %i %i \n", x, y, w, h);
+    LOG_D("draw box %i %i %i %i \n", x, y, w, h);
     draw_vline_c(x, y, h, c);
     draw_vline_c(w - 1, y, h, c);
 

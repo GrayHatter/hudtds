@@ -14,33 +14,43 @@
 
 static bool done = false;
 
+LOGLVL curr_log_lvl = LOGLVL_NONE;
+
 
 int main(void)
 {
-    LOG_E("Main\n");
+    char *log_lvl = getenv("HUDTDS_DEBUG");
+    if (log_lvl) {
+        int level = atoi(log_lvl);
+        if (level && level < LOGLVL_WTF) {
+            curr_log_lvl = level;
+        }
+    }
+
+    LOG_N("Main\n");
     struct wl_buffer *buffer;
     struct wl_shm_pool *pool;
     struct wl_shell_surface *surface;
 
     init_wayland();
-    LOG_E("wl init done\n");
+    LOG_N("wl init done\n");
 
     // get_info();
 
     pool = init_memory_pool();
-    LOG_E("Pool done\n");
+    LOG_N("Pool done\n");
 
     surface = init_root_surface();
-    LOG_E("surface done\n");
+    LOG_N("surface done\n");
 
     buffer = init_buffer(pool, WIDTH, HEIGHT);
-    LOG_E("buffer done\n");
+    LOG_N("buffer done\n");
 
     bind_buffer(buffer, surface);
-    LOG_E("bind done\n");
+    LOG_N("bind done\n");
 
     //init_cursor(pool, CURSOR_WIDTH, CURSOR_HEIGHT, CURSOR_HOT_SPOT_X, CURSOR_HOT_SPOT_Y);
-    // LOG_E("cursor done\n");
+    // LOG_N("cursor done\n");
 
     while (!done) {
         if (do_wayland() < 0) {

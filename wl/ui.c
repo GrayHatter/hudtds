@@ -19,7 +19,7 @@ struct ui_panel *root_panel = NULL;
 
 bool ui_touch_down(struct ui_panel *panel, const int x, const int y, const uint32_t id, const uint32_t serial)
 {
-    LOG_E("ui touch down %i %i \n", x, y);
+    LOG_W("ui touch down %i %i \n", x, y);
     struct ui_panel **children = panel->children;
     if (children) {
         struct ui_panel *p;
@@ -28,7 +28,7 @@ bool ui_touch_down(struct ui_panel *panel, const int x, const int y, const uint3
             int32_t l_y = p->pos_y < 0 ? panel->height + p->pos_y : panel->pos_y + p->pos_y;
             int32_t l_w = l_x + (p->width <= 0 ? panel->width + p->width : panel->pos_x + p->width);
             int32_t l_h = l_y + (p->height <= 0 ? panel->height + p->height : panel->pos_y + p->height);
-            LOG_E("touchers %i %i %i %i\n", l_x, l_y, l_w, l_h);
+            LOG_W("touchers %i %i %i %i\n", l_x, l_y, l_w, l_h);
             if (x >= l_x && y >= l_y && x <= l_w && y <= l_h) {
                 if (p->children) {
                     // TODO relative inside relative panels won't work :(
@@ -94,9 +94,9 @@ bool ui_key_up(struct ui_panel *panel, const uint32_t key)
 
 void ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int32_t h)
 {
-    LOG_E("ui panel draw %p\n", panel);
+    LOG_I("ui panel draw %p\n", panel);
     if (panel->draw) {
-        LOG_E("drawing\n");
+        LOG_W("drawing\n");
         panel->draw(panel, x, y, w, h);
     }
 
@@ -133,7 +133,7 @@ bool ui_iter(struct ui_panel *panel)
     bool draw = false;
     // FIXME
     panel = root_panel;
-    // LOG_E("iter panel %p \n", panel);
+    // LOG_W("iter panel %p \n", panel);
 
     ui_panel_draw(panel, 0, 0, panel->width, panel->height);
 
@@ -160,7 +160,7 @@ static bool touch_test_1(struct ui_panel *p, const int x, const int y, const uin
     (void) y;
     (void) id;
     (void) serial;
-    LOG_E("touch test 1\n");
+    LOG_W("touch test 1\n");
 
     return true;
 }
@@ -179,7 +179,7 @@ static bool touch_test_2(struct ui_panel *p, const int x, const int y, const uin
 
     pthread_t t;
     pthread_create(&t, NULL, hud_snd_play, (void *)NULL);
-    LOG_E("touch test 2\n");
+    LOG_W("touch test 2\n");
     return true;
 }
 
@@ -191,7 +191,7 @@ static bool touch_test_3(struct ui_panel *p, const int x, const int y, const uin
     (void) y;
     (void) id;
     (void) serial;
-    LOG_E("touch test 3\n");
+    LOG_W("touch test 3\n");
     return true;
 }
 
@@ -203,7 +203,7 @@ static bool touch_test_4(struct ui_panel *p, const int x, const int y, const uin
     (void) y;
     (void) id;
     (void) serial;
-    LOG_E("touch test 4\n");
+    LOG_W("touch test 4\n");
     return true;
 }
 
@@ -215,7 +215,7 @@ static bool touch_test_5(struct ui_panel *p, const int x, const int y, const uin
     (void) y;
     (void) id;
     (void) serial;
-    LOG_E("touch test 5\n");
+    LOG_W("touch test 5\n");
 return true;
 }
 
@@ -233,7 +233,7 @@ struct ui_panel *init_ui(void)
     root_panel->width = WIDTH - 1;
     root_panel->height = HEIGHT - 1;
 
-    LOG_E("init root children");
+    LOG_W("init root children");
     root_panel->children = calloc(6, sizeof (struct ui_panel *));
     root_panel->children[0] = mk_panel();
     root_panel->children[0]->t_dn = touch_test_1;
@@ -257,7 +257,7 @@ struct ui_panel *init_ui(void)
     root_panel->children[4]->pos_x *= 4;
     root_panel->children[5] = NULL;
 
-    LOG_E(" -- done\n");
+    LOG_W(" -- done\n");
 
     return root_panel;
 }
