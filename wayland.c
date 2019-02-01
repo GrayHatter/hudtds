@@ -235,7 +235,7 @@ static void ivi_shell_create(void *data, struct wl_interface *interface, char *n
     (void) data;
     (void) interface;
     // (void) thing;
-    // char *name = wl_ivi_pack_surface_id(id);
+    // void *pointer = wl_ivi_pack_surface_id(name);
     LOG_E("IVI SHELL created %s %x %x\n", name, (int)thing, id2);
 }
 
@@ -249,7 +249,7 @@ static void ivi_shell_destrory(void *data, struct wl_interface *ivi_interface, v
 static void ivi_shell_other(void *data, void *ivi, void *p)
 {
     (void) data;
-    LOG_E("IVI SHELL destroy %x %x\n", (int)ivi, (int)p);
+    LOG_E("IVI SHELL other %x %x\n", (int)ivi, (int)p);
 }
 
 

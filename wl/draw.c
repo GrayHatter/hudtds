@@ -5,7 +5,7 @@
 #include "../log.h"
 
 
-#define CONSTRAIN_SIZE(x, y, pad) (x < pad || y < pad || x >= (WIDTH - pad) || y >= (HEIGHT - 2) )
+#define CONSTRAIN_SIZE(x, y, pad) (x < pad || y < pad || x >= (WIDTH - pad) || y >= (HEIGHT) )
 
 
 void draw_dot_c(int32_t x, int32_t y, uint32_t c)
@@ -81,62 +81,43 @@ void draw_line(int32_t x, int32_t y, int32_t w, int32_t h)
 
 void draw_vline_c(int32_t x, int32_t y, int32_t h, uint32_t c)
 {
-    if (h < y) {
-        int32_t hh = h;
-        h = y;
-        y = hh;
-    }
-
-    if (CONSTRAIN_SIZE(x, y, 2) && CONSTRAIN_SIZE(x, h, 2) ) {
+    if (CONSTRAIN_SIZE(x, y, 0) && CONSTRAIN_SIZE(x, h, 1) ) {
         LOG_E("draw_vline no\n");
+        LOG_E("vl %i %i %i\n", x, y, h);
         return;
     }
 
-    uint32_t *p = root_pool_data->memory + (x - 1) + (y - 1) * WIDTH;
-    p[2] = c;
-    p += WIDTH;
-    p[1] = c;
-    p[2] = c;
-    p[3] = c;
-    p += WIDTH;
-    for (int32_t rem = h; rem > 0; rem--) {
+    // LOG_E("vl %i %i %i\n", x, y, h);
+    uint32_t *p = root_pool_data->memory + x + y * WIDTH;
+    for (int32_t rem = h - y; rem > 0; rem--) {
         p[0] = c;
         p[1] = c;
-        p[2] = c;
-        p[3] = c;
-        p[4] = c;
         p += WIDTH;
     }
-    p[1] = c;
-    p[2] = c;
-    p[3] = c;
-    p += WIDTH;
-    p[2] = c;
-
-    hud_surface_damage(x - 2, y - 2, x + 2, h - y + 2);
-    hud_surface_commit();
 }
 
 
 void draw_hline_c(int32_t x, int32_t y, int32_t w, uint32_t c)
 {
-    if (CONSTRAIN_SIZE(x, y, 1) && CONSTRAIN_SIZE(x, w, 1) ) {
-        LOG_E("draw_vline no\n");
+    // LOG_E("hl %i %i %i\n", x, y, w);
+    if (CONSTRAIN_SIZE(x, y, 0) && CONSTRAIN_SIZE(x, w, 1) ) {
+        LOG_E("draw_hline no\n");
+        LOG_E("vl %i %i %i\n", x, y, w);
         return;
     }
 
-    uint32_t *p = root_pool_data->memory + (x - 1) + (y - 1) * WIDTH;
-    for (int rem = (w + 2); rem > 0; rem--) {
+    uint32_t *p = root_pool_data->memory + x + (y - 1) * WIDTH;
+    for (int rem = w + 1 - x; rem > 0; rem--) {
         *p++ = c;
     }
-    p = root_pool_data->memory + (x - 1) + y * WIDTH;
-    for (int rem = (w + 2); rem > 0; rem--) {
+    p = root_pool_data->memory + x + y * WIDTH;
+    for (int rem = w + 1 - x; rem > 0; rem--) {
         *p++ = c;
     }
-    p = root_pool_data->memory + (x - 1) + (y + 1) * WIDTH;
-    for (int rem = (w + 2); rem > 0; rem--) {
-        *p++ = c;
-    }
+    // p = root_pool_data->memory + (x - 1) + (y + 1) * WIDTH;
+    // for (int rem = (w + 2); rem > 0; rem--) {
+    //     *p++ = c;
+    // }
 }
 
 
@@ -176,11 +157,12 @@ void draw_square(int32_t x, int32_t y, int32_t w, int32_t h) {
 
 void draw_box_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 {
+    LOG_E("draw box %i %i %i %i \n", x, y, w, h);
     draw_vline_c(x, y, h, c);
-    draw_vline_c(x + w, y, h, c);
+    draw_vline_c(w - 1, y, h, c);
 
     draw_hline_c(x, y, w, c);
-    draw_hline_c(x, y + h, w, c);
+    draw_hline_c(x, h - 1, w, c);
 
     hud_surface_damage(x, y, w, h);
     hud_surface_commit();

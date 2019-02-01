@@ -108,7 +108,7 @@ static bool known_key(uint32_t key, uint32_t state)
         case MZD_KEYMAP_EXT_MUSIC: {
             LOG_E("Flavor music\n");
             pthread_t t;
-            pthread_create(&t, NULL, hud_snd_play, (void *)NULL);;
+            pthread_create(&t, NULL, hud_snd_play, (void *)NULL);
             return true;
         }
 

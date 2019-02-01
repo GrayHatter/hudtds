@@ -15,8 +15,21 @@ typedef bool key_up(struct ui_panel *, const uint32_t);
 
 typedef uint32_t color_t;
 
+typedef enum {
+    PANEL_NONE = 0,
+    PANEL_FRAME,
+    PANEL_BUTTON,
+    PANEL_LIST,
+
+
+    PANEL_OTHER,
+    PANEL_MAX = 255
+} PANEL_TYPE;
+
+
 struct ui_panel {
     bool draw_needed;
+    PANEL_TYPE type;
 
     touch_dn *t_dn;
     touch_up *t_mv;
@@ -25,7 +38,7 @@ struct ui_panel {
     key_dn *k_dn;
     key_up *k_up;
 
-    void (*draw)(struct ui_panel *);
+    void (*draw)(struct ui_panel *, int32_t, int32_t, int32_t, int32_t);
 
     bool focused;
     int32_t pos_x;

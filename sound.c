@@ -60,7 +60,7 @@ void* hud_snd_play(void *p)
                 frames = snd_pcm_writei(handle, buffer, play_count);
             }
 
-            if (frames < 0) {
+            while (frames < 0) {
                 frames = snd_pcm_recover(handle, frames, 1);
                 if (frames < 0) {
                     LOG_E("snd_pcm_writei failed: %s\n", snd_strerror(err));
