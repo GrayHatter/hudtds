@@ -230,13 +230,22 @@ static void ivi_default(void *data, struct wl_interface *ivi_interface, void *p,
 }
 
 
-static void ivi_shell_create(void *data, struct wl_interface *interface, char *name, void *thing, uint32_t id2)
+static void ivi_shell_create(void *data, struct wl_interface *interface, char *name)
 {
+    LOG_E("IVI SHELL created %s \n", name);
     (void) data;
-    (void) interface;
+    if (strcmp("HUDTDS", name) == 0) {
+        struct wl_proxy *ani_grp = wl_proxy_create((struct wl_proxy *) interface, &wl_ivi_animation_group_interface);
+        if (ani_grp) {
+            wl_proxy_marshal((struct wl_proxy *) interface, IVI_SHELL_CREATE_ANIMATION_GROUP, ani_grp);
+            wl_proxy_marshal(ani_grp, IVI_SHELL_ANIMATION_GROUP_ANIMATE_SCALAR, name, 2, 0, 0, wl_fixed_from_double(1.0), 0, 0);
+            wl_proxy_marshal(ani_grp, IVI_SHELL_ANIMATION_GROUP_ANIMATE_SCALAR, name, 1, 0, 0, wl_fixed_from_double(10000.0), 0, 0);
+            wl_proxy_marshal(ani_grp, IVI_SHELL_ANIMATION_GROUP_START);
+            wl_proxy_marshal(ani_grp, IVI_SHELL_ANIMATION_GROUP_FINISH);
+        }
+    }
     // (void) thing;
     // void *pointer = wl_ivi_pack_surface_id(name);
-    LOG_E("IVI SHELL created %s %x %x\n", name, (int)thing, id2);
 }
 
 static void ivi_shell_destrory(void *data, struct wl_interface *ivi_interface, void *p, void *pp)

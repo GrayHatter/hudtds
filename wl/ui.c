@@ -19,23 +19,31 @@ struct ui_panel *root_panel = NULL;
 
 bool ui_touch_down(struct ui_panel *panel, const int x, const int y, const uint32_t id, const uint32_t serial)
 {
+    LOG_E("ui touch down %i %i \n", x, y);
     struct ui_panel **children = panel->children;
     if (children) {
         struct ui_panel *p;
         while ((p = *children++)) {
-            if (x >= p->pos_x && y >= p->pos_y && x <= p->pos_x + p->width && y <= p->pos_y + p->height) {
-                if (ui_touch_down(p, x, y, id, serial)) {
-                    return true;
+            int32_t l_x = p->pos_x < 0 ? panel->width + p->pos_x : panel->pos_x + p->pos_x;
+            int32_t l_y = p->pos_y < 0 ? panel->height + p->pos_y : panel->pos_y + p->pos_y;
+            int32_t l_w = l_x + (p->width <= 0 ? panel->width + p->width : panel->pos_x + p->width);
+            int32_t l_h = l_y + (p->height <= 0 ? panel->height + p->height : panel->pos_y + p->height);
+            LOG_E("touchers %i %i %i %i\n", l_x, l_y, l_w, l_h);
+            if (x >= l_x && y >= l_y && x <= l_w && y <= l_h) {
+                if (p->children) {
+                    // TODO relative inside relative panels won't work :(
+                    if (ui_touch_down(p, x, y, id, serial)) {
+                        return true;
+                    }
+                } else {
+                    if (p->t_dn && x >= l_x && y >= l_y && x <= l_w && y <= l_h) {
+                        return p->t_dn(panel, x, y, id, serial);
+                    }
                 }
             }
         }
     }
 
-    if (panel->t_dn
-        && x >= panel->pos_x && y >= panel->pos_y
-        && x <= panel->pos_x + panel->width && y <= panel->pos_y + panel->height) {
-            return panel->t_dn(panel, x, y, id, serial);
-    }
 
     return false;
 }
@@ -222,8 +230,8 @@ struct ui_panel *init_ui(void)
     root_panel->k_dn = ui_key_down;
     root_panel->k_dn = ui_key_up;
 
-    root_panel->width = WIDTH;
-    root_panel->height = HEIGHT;
+    root_panel->width = WIDTH - 1;
+    root_panel->height = HEIGHT - 1;
 
     LOG_E("init root children");
     root_panel->children = calloc(6, sizeof (struct ui_panel *));

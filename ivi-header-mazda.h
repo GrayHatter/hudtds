@@ -8,12 +8,26 @@ extern struct wl_interface wl_ivi_shell_interface;
 extern struct wl_interface wl_ivi_interface;
 extern struct wl_interface wl_ivi_animation_group_interface;
 
+typedef enum {
+    IVI_SHELL_CREATE_ANIMATION_GROUP = 0
+} IVI_SHELL_CREATE_OPCODES;
+
+typedef enum {
+    IVI_SHELL_ANIMATION_GROUP_START = 0,
+    IVI_SHELL_ANIMATION_GROUP_STOP,
+    IVI_SHELL_ANIMATION_GROUP_FINISH,
+    IVI_SHELL_ANIMATION_GROUP_DESTORY,
+    IVI_SHELL_ANIMATION_GROUP_ADD_TRIGGER,
+    IVI_SHELL_ANIMATION_GROUP_ANIMATE_SCALAR,
+    IVI_SHELL_ANIMATION_GROUP_ANIMATE_CUBICBEZIER2d,
+    IVI_SHELL_ANIMATION_GROUP_TRIGGER,
+    IVI_SHELL_ANIMATION_GROUP_SEGV
+} IVI_SHELL_RUN_OPCODES;
+
 struct wl_ivi_shell_listener {
     void (*create)(void *data,
         struct wl_interface *ivi_interface,
-        char *name,
-        void *screen,
-        uint32_t id2);
+        char *name);
     void (*destroy)(void *data, struct wl_interface *, void *, void *);
     void (*other)(void *, void *, void *);
 };

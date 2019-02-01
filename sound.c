@@ -11,21 +11,26 @@
 #include <vorbis/vorbisfile.h>
 
 
-static char *device = "default";      /* playback device */
+static char *device = "default";
+static int resample = 1;
+static snd_pcm_format_t format = SND_PCM_FORMAT_S16_LE;
+static int sample_word_size = 2;
+static int ov_signed = 2;
+static int endian = 0;  /* LE = 0, BE = 2 */
 void* hud_snd_play(void *p)
 {
     (void) p;
 
-    int snd_err = 0;
-    snd_pcm_t *handle;
-    if ((snd_err = snd_pcm_open(&handle, device, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+    snd_pcm_t *pcm;
+    int snd_err = snd_pcm_open(&pcm, device, SND_PCM_STREAM_PLAYBACK, 0);
+    if (snd_err < 0) {
         LOG_E("Playback open error: %s\n", snd_strerror(snd_err));
         exit(EXIT_FAILURE);
     }
 
     OggVorbis_File vf;
     // FILE *f = fopen("test2.ogg", "r");
-    int err = ov_fopen("test2.ogg" , &vf);
+    int err = ov_fopen("test.ogg" , &vf);
     if (err != 0) {
         exit(10);
     }
@@ -34,42 +39,40 @@ void* hud_snd_play(void *p)
     LOG_E("Bitstream is %i channel, %ldHz\n", vi->channels, vi->rate);
     LOG_E("Encoded by: %s\n\n", ov_comment(&vf, -1)->vendor);
 
-    snd_err = snd_pcm_set_params(handle, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED,
-                                 vi->channels, vi->rate, 1, vi->rate);
+    snd_err = snd_pcm_set_params(pcm, format, SND_PCM_ACCESS_RW_INTERLEAVED,
+        vi->channels, vi->rate, resample, vi->rate);
     if (snd_err < 0) {
         LOG_E("Playback open error: %s\n", snd_strerror(snd_err));
         exit(EXIT_FAILURE);
     }
     LOG_E("expecting %f seconds of playback\n", ov_time_total(&vf, -1));
 
-    char *buffer = malloc(100 * vi->channels * vi->rate);
+    char *buffer = malloc(sample_word_size * vi->channels * vi->rate);
     if (!buffer) {
         exit(9);
     }
 
-    snd_pcm_sframes_t frames;
-    int current_section;
-    long ret = 0;
+    int bitstream;
+    long ov_size = 0;
+    snd_pcm_sframes_t frames = snd_pcm_bytes_to_frames(pcm, ov_size);
     while (1) {
-        ret = ov_read(&vf, buffer, sizeof(buffer), 0, 1, 0, &current_section);
-        int play_count = snd_pcm_bytes_to_frames(handle, ret);
-        if (ret > 0) {
-            frames = snd_pcm_writei(handle, buffer, play_count);
-            if (frames == -EPIPE) {
-                snd_pcm_prepare(handle);
-                frames = snd_pcm_writei(handle, buffer, play_count);
-            }
-
-            while (frames < 0) {
-                frames = snd_pcm_recover(handle, frames, 1);
-                if (frames < 0) {
-                    LOG_E("snd_pcm_writei failed: %s\n", snd_strerror(err));
-                    break;
+        ov_size = ov_read(&vf, buffer, sizeof buffer, endian, sample_word_size, ov_signed, &bitstream);
+        frames = snd_pcm_bytes_to_frames(pcm, ov_size);
+        if (frames > 0) {
+            frames = snd_pcm_writei(pcm, buffer, frames);
+            if (frames < 0) {
+                LOG_E("frame error %li", frames);
+                // if (frames == -EPIPE) {
+                //     snd_pcm_prepare(pcm);
+                //     frames = snd_pcm_writei(pcm, buffer, frames);
+                // }
+                if (snd_pcm_recover(pcm, frames, 0) == 0) {
+                    frames = snd_pcm_writei(pcm, buffer, frames);
                 } else {
-                    frames = snd_pcm_writei(handle, buffer, play_count);
+                    LOG_E("snd_pcm_writei failed: %s\n", snd_strerror(err));
                 }
             }
-        } else if(ret < 0) {
+        } else if(ov_size < 0) {
             LOG_E("error ret < 0\n");
             /* error in the stream. */
         } else {
@@ -81,6 +84,6 @@ void* hud_snd_play(void *p)
     ov_clear(&vf);
     free(buffer);
 
-    snd_pcm_close(handle);
+    snd_pcm_close(pcm);
     return 0;
 }
