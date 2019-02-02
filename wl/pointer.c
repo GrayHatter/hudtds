@@ -8,7 +8,7 @@
 static void pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *surface,
                           wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
-    printf("pointer in\n");
+    LOG_E("pointer in\n");
     struct pointer_data *pointer_data;
 
     pointer_data = wl_pointer_get_user_data(wl_pointer);
@@ -21,21 +21,21 @@ static void pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t se
 static void pointer_leave(void *data, struct wl_pointer *wl_pointer, uint32_t serial, struct wl_surface *wl_surface)
 {
     (void) data;
-    printf("pointer out\n");
+    LOG_E("pointer out\n");
 }
 
 static void pointer_motion(void *data, struct wl_pointer *wl_pointer, uint32_t time, wl_fixed_t surface_x,
                            wl_fixed_t surface_y)
 {
     (void) data;
-    printf("pointer move\n");
+    LOG_E("pointer move\n");
 }
 
 static void pointer_button(void *data, struct wl_pointer *wl_pointer, uint32_t serial, uint32_t time, uint32_t button,
                            uint32_t state)
 {
     (void) data;
-    printf("pointer click\n");
+    LOG_E("pointer click\n");
 
 }
 
@@ -55,7 +55,7 @@ void init_cursor(struct wl_shm_pool *pool, unsigned width, unsigned height, int3
 {
     struct pointer_data *data = malloc(sizeof (struct pointer_data));
     if (data == NULL) {
-        printf("Unable to allocate cursor");
+        LOG_E("Unable to allocate cursor");
         return;
     }
 
@@ -64,7 +64,7 @@ void init_cursor(struct wl_shm_pool *pool, unsigned width, unsigned height, int3
     data->surface = wl_compositor_create_surface(compositor);
 
     if (data->surface == NULL) {
-        printf("Unable to create cursor surface");
+        LOG_E("Unable to create cursor surface");
         free(data);
         return;
     }
@@ -72,7 +72,7 @@ void init_cursor(struct wl_shm_pool *pool, unsigned width, unsigned height, int3
     data->buffer = init_buffer(pool, width, height);
 
     if (data->buffer == NULL) {
-        printf("Unable to create cursor buffer");
+        LOG_E("Unable to create cursor buffer");
         wl_pointer_set_user_data(pointer, data);
         free(data);
     }

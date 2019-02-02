@@ -5,6 +5,7 @@ OBJ = hud.o sound.o wayland.o info.o
 OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o
 
 CFLAGS := -Wall -Wextra -Werror $(CFLAGS)
+CFLAGS += -Wno-sign-compare
 
 CFLAGS += -std=c11 -O0 -mcpu=arm7
 

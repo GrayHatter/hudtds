@@ -17,27 +17,29 @@ struct ui_panel *root_panel = NULL;
 } while (0)
 
 
-bool ui_touch_down(struct ui_panel *panel, const int x, const int y, const uint32_t id, const uint32_t serial)
+bool ui_touch_down(struct ui_panel *panel, const int mx, const int my, const int x, const int y,
+    const uint32_t w, const uint32_t h, const uint32_t id, const uint32_t serial)
 {
     LOG_W("ui touch down %i %i \n", x, y);
     struct ui_panel **children = panel->children;
     if (children) {
         struct ui_panel *p;
         while ((p = *children++)) {
-            int32_t l_x = p->pos_x < 0 ? panel->width + p->pos_x : panel->pos_x + p->pos_x;
-            int32_t l_y = p->pos_y < 0 ? panel->height + p->pos_y : panel->pos_y + p->pos_y;
-            int32_t l_w = l_x + (p->width <= 0 ? panel->width + p->width : panel->pos_x + p->width);
-            int32_t l_h = l_y + (p->height <= 0 ? panel->height + p->height : panel->pos_y + p->height);
+            int32_t l_x = x, l_y = y, l_w = w, l_h = h;
+            l_x = panel->pos_x < 0 ? w + panel->pos_x : x + panel->pos_x;
+            l_y = panel->pos_y < 0 ? h + panel->pos_y : y + panel->pos_y;
+            l_w = panel->width <= 0 ? w + panel->width : x + panel->width;
+            l_h = panel->height <= 0 ? h + panel->height : y + panel->height;
+
             LOG_W("touchers %i %i %i %i\n", l_x, l_y, l_w, l_h);
-            if (x >= l_x && y >= l_y && x <= l_w && y <= l_h) {
+            if (l_x <= mx && mx <= l_w && l_y <= my && my <= l_h) {
                 if (p->children) {
-                    // TODO relative inside relative panels won't work :(
-                    if (ui_touch_down(p, x, y, id, serial)) {
+                    if (ui_touch_down(p, mx, my, l_x, l_y, l_w, l_h, id, serial)) {
                         return true;
                     }
                 } else {
-                    if (p->t_dn && x >= l_x && y >= l_y && x <= l_w && y <= l_h) {
-                        return p->t_dn(panel, x, y, id, serial);
+                    if (p->t_dn && l_x <= mx && mx <= l_w && l_y <= my && my <= l_h) {
+                        return p->t_dn(panel, mx, my, l_x, l_y, l_w, l_h, id, serial);
                     }
                 }
             }
@@ -50,29 +52,30 @@ bool ui_touch_down(struct ui_panel *panel, const int x, const int y, const uint3
 
 bool ui_root_touch_down(const int x, const int y, const uint32_t id, const uint32_t serial)
 {
-    return ui_touch_down(root_panel, x, y, id, serial);
+    return ui_touch_down(root_panel, x, y, 0, 0, root_panel->width, root_panel->height, id, serial);
 }
 
-bool ui_touch_up(struct ui_panel *panel, const int x, const int y, const uint32_t id, const uint32_t serial)
+bool ui_touch_up(struct ui_panel *panel, const int x, const int y, const uint32_t w,
+    const uint32_t h, const uint32_t id, const uint32_t serial)
 {
     if (panel->t_up) {
-        panel->t_up(panel, x, y, id, serial);
+        panel->t_up(panel, x, y, w, h, id, serial);
     }
 
     struct ui_panel **children = panel->children;
     if (children) {
         struct ui_panel *p;
         while ((p = *children++)) {
-          ui_touch_up(p, x, y, id, serial);
+          ui_touch_up(p, x, y, w, h, id, serial);
         }
     }
     return true;
 }
 
 
-bool ui_root_touch_up(const int x, const int y, const uint32_t id, const uint32_t serial)
+bool ui_touch_up_root(const uint32_t id, const uint32_t serial)
 {
-    return ui_touch_up(root_panel, x, y, id, serial);
+    return ui_touch_up(root_panel, 0, 0, root_panel->width, root_panel->height, id, serial);
 }
 
 
@@ -153,11 +156,16 @@ struct ui_panel *mk_panel(void)
 };
 
 
-static bool touch_test_1(struct ui_panel *p, const int x, const int y, const uint32_t id, const uint32_t serial)
+static bool touch_test_1(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
+    const uint32_t id, const uint32_t serial)
 {
     (void) p;
+    (void) mx;
+    (void) my;
     (void) x;
     (void) y;
+    (void) w;
+    (void) h;
     (void) id;
     (void) serial;
     LOG_W("touch test 1\n");
@@ -169,11 +177,16 @@ static bool touch_test_1(struct ui_panel *p, const int x, const int y, const uin
 #include <pthread.h>
 #include "../sound.h"
 
-static bool touch_test_2(struct ui_panel *p, const int x, const int y, const uint32_t id, const uint32_t serial)
+static bool touch_test_2(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
+    const uint32_t id, const uint32_t serial)
 {
     (void) p;
+    (void) mx;
+    (void) my;
     (void) x;
     (void) y;
+    (void) w;
+    (void) h;
     (void) id;
     (void) serial;
 
@@ -184,11 +197,16 @@ static bool touch_test_2(struct ui_panel *p, const int x, const int y, const uin
 }
 
 
-static bool touch_test_3(struct ui_panel *p, const int x, const int y, const uint32_t id, const uint32_t serial)
+static bool touch_test_3(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
+    const uint32_t id, const uint32_t serial)
 {
     (void) p;
+    (void) mx;
+    (void) my;
     (void) x;
     (void) y;
+    (void) w;
+    (void) h;
     (void) id;
     (void) serial;
     LOG_W("touch test 3\n");
@@ -196,11 +214,16 @@ static bool touch_test_3(struct ui_panel *p, const int x, const int y, const uin
 }
 
 
-static bool touch_test_4(struct ui_panel *p, const int x, const int y, const uint32_t id, const uint32_t serial)
+static bool touch_test_4(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
+    const uint32_t id, const uint32_t serial)
 {
     (void) p;
+    (void) mx;
+    (void) my;
     (void) x;
     (void) y;
+    (void) w;
+    (void) h;
     (void) id;
     (void) serial;
     LOG_W("touch test 4\n");
@@ -208,11 +231,16 @@ static bool touch_test_4(struct ui_panel *p, const int x, const int y, const uin
 }
 
 
-static bool touch_test_5(struct ui_panel *p, const int x, const int y, const uint32_t id, const uint32_t serial)
+static bool touch_test_5(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
+    const uint32_t id, const uint32_t serial)
 {
     (void) p;
+    (void) mx;
+    (void) my;
     (void) x;
     (void) y;
+    (void) w;
+    (void) h;
     (void) id;
     (void) serial;
     LOG_W("touch test 5\n");
@@ -225,7 +253,7 @@ struct ui_panel *init_ui(void)
     root_panel = calloc(1, sizeof (struct ui_panel));
 
     root_panel->t_dn = ui_touch_down;
-    root_panel->t_dn = ui_touch_up;
+    root_panel->t_up = ui_touch_up;
 
     root_panel->k_dn = ui_key_down;
     root_panel->k_dn = ui_key_up;

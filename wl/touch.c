@@ -16,7 +16,7 @@ static struct wl_touch *touch;
 static void touch_paint(int32_t x, int32_t y, int32_t id, bool mdown)
 {
     if (x < 2 || x >= WIDTH - 2 || y < 2 || y >= HEIGHT - 2) {
-        LOG_E("no\n");
+        LOG_D("no\n");
         return;
     }
 
@@ -44,12 +44,6 @@ static void touch_paint(int32_t x, int32_t y, int32_t id, bool mdown)
 /***************************************************************************************
  ***  Touch Interface                                                                ***
  ***************************************************************************************/
-static struct touch {
-    wl_fixed_t x;
-    wl_fixed_t y;
-} touches[N_TOUCHES] = {0};
-
-
 static void touch_down(void *data, struct wl_touch *wl_touch, uint32_t serial, uint32_t time,
                        struct wl_surface *surface, int32_t id, wl_fixed_t f_x, wl_fixed_t f_y)
 {
@@ -63,7 +57,7 @@ static void touch_down(void *data, struct wl_touch *wl_touch, uint32_t serial, u
     int x = wl_fixed_to_int(f_x);
     int y = wl_fixed_to_int(f_y);
 
-    LOG_E("touch down %i %i %u\n", x, y, id);
+    LOG_D("touch down %i %i %u\n", x, y, id);
 
     touch_paint(x, y, id, true);
 
@@ -75,9 +69,9 @@ static void touch_up_cb(void *data, struct wl_touch *wl_touch, uint32_t serial, 
     (void) data;
     (void) wl_touch;
     (void) time;
-    LOG_E("touch up\n");
+    LOG_D("touch up\n");
 
-    ui_root_touch_up(wl_fixed_to_int(touches[id % N_TOUCHES].x), wl_fixed_to_int(touches[id % N_TOUCHES].y), id, serial);
+    ui_touch_up_root(id, serial);
 }
 
 static void touch_motion(void *data, struct wl_touch *wl_touch, uint32_t time, int32_t id, wl_fixed_t f_x,
@@ -89,10 +83,7 @@ static void touch_motion(void *data, struct wl_touch *wl_touch, uint32_t time, i
 
     float x = wl_fixed_to_double(f_x);
     float y = wl_fixed_to_double(f_y);
-    LOG_E("touch move %f %f %i\n", x, y, id);
-
-    touches[id % N_TOUCHES].x = f_x;
-    touches[id % N_TOUCHES].y = f_y;
+    LOG_D("touch move %f %f %i\n", x, y, id);
 
     touch_paint(x, y, id, false);
 }
@@ -101,14 +92,14 @@ static void touch_frame(void *data, struct wl_touch *wl_touch)
 {
     (void) data;
     (void) wl_touch;
-    LOG_E("touch frame\n");
+    LOG_D("touch frame\n");
 }
 
 static void touch_cancel(void *data, struct wl_touch *wl_touch)
 {
     (void) data;
     (void) wl_touch;
-    LOG_E("touch canceled\n");
+    LOG_D("touch canceled\n");
 }
 
 static const struct wl_touch_listener touch_listener = {
@@ -122,7 +113,7 @@ static const struct wl_touch_listener touch_listener = {
 bool hud_touch_init(struct wl_seat *seat)
 {
     if (!touch){
-        LOG_E("setting keys\n");
+        LOG_D("setting keys\n");
         touch = wl_seat_get_touch(seat);
         wl_touch_add_listener(touch, &touch_listener, NULL);
         return true;
@@ -133,7 +124,7 @@ bool hud_touch_init(struct wl_seat *seat)
 bool hud_touch_raze(void)
 {
     if (touch) {
-        LOG_E("killing keys\n");
+        LOG_D("killing keys\n");
         wl_touch_destroy(touch);
         touch = NULL;
         return true;
