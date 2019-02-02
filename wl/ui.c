@@ -1,6 +1,7 @@
 #include "ui.h"
 
 #include "draw.h"
+#include "text.h"
 
 #include "../hud.h"
 #include "../log.h"
@@ -120,6 +121,8 @@ void ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
     }
 }
 
+#include "../wayland.h"
+
 
 bool ui_iter(struct ui_panel *panel)
 {
@@ -128,7 +131,13 @@ bool ui_iter(struct ui_panel *panel)
     panel = ui_root_panel;
     // LOG_W("iter panel %p \n", panel);
 
+    tmp_draw_helper(30, 30);
+
+    hud_surface_damage(30, 30, 60, 60);
+    hud_surface_commit();
+
     ui_panel_draw(panel, 0, 0, panel->width, panel->height);
+
 
     return draw;
 }

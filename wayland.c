@@ -282,19 +282,19 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t i
     // static struct wl_interface *ivi_animation_group;
 
     (void) data;
-    LOG_E("Got a registry event for %s id %d", interface, id);
+    LOG_D("Got a registry event for %s id %d", interface, id);
 
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
-        LOG_E("  --  Setting Compositor");
+        LOG_D("  --  Setting Compositor");
         compositor = wl_registry_bind(registry, id, &wl_compositor_interface, min(version, 4));
     } else if (strcmp(interface, wl_shm_interface.name) == 0) {
-        LOG_E("  --  Setting shm");
+        LOG_D("  --  Setting shm");
         shm = wl_registry_bind(registry, id, &wl_shm_interface, min(version, 1));
     } else if (strcmp(interface, wl_shell_interface.name) == 0) {
-        LOG_E("  --  Setting Shell");
+        LOG_D("  --  Setting Shell");
         shell = wl_registry_bind(registry, id, &wl_shell_interface, min(version, 1));
     } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-        LOG_E("  --  Setting Seat");
+        LOG_D("  --  Setting Seat");
         seat = wl_registry_bind(registry, id, &wl_seat_interface, min(version, 2));
         wl_seat_add_listener(seat, &seat_listener, NULL);
     } else if (strcmp(interface, wl_ivi_shell_interface.name) == 0) {
@@ -302,17 +302,17 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t i
         // TODO write my own ivi header that creates the inline wrapper func "just lime mom used to make"
         ivi_shell = wl_registry_bind(registry, id, &wl_ivi_shell_interface, min(version, 1));
         wl_proxy_add_listener((struct wl_proxy *)ivi_shell, (void (**)(void))&ivi_shell_listener, NULL);
-        LOG_E("  --  Setting IVI SHELL %p", ivi_shell);
+        LOG_D("  --  Setting IVI SHELL %p", ivi_shell);
 
-        // LOG_E("\n\t\t trying for animation group %p", ivi_shell);
+        // LOG_D("\n\t\t trying for animation group %p", ivi_shell);
         // ivi_animation_group = wl_proxy_create(wl_ivi_shell_interface, id, &wl_ivi_animation_group_interface, min(version, 1));
-        // LOG_E(" -- ivi_ag %p", ivi_animation_group);
+        // LOG_D(" -- ivi_ag %p", ivi_animation_group);
     } else if (strcmp(interface, wl_ivi_interface.name) == 0) {
         ivi = wl_registry_bind(registry, id, &wl_ivi_interface, min(version, 1));
         wl_proxy_add_listener((struct wl_proxy *)ivi, (void (**)(void))&ivi_listener, NULL);
-        LOG_E("  --  Setting IVI  %p", ivi);
+        LOG_D("  --  Setting IVI  %p", ivi);
     }
-    LOG_E("\n");
+    LOG_D("\n");
 }
 
 
