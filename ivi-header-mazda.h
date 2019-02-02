@@ -1,4 +1,4 @@
-#ifndef _IVI_HEADER_H_
+#if !defined(_IVI_HEADER_H_) || !defined(_IVI_HEADER_MAZDA_H_)
 #define _IVI_HEADER_H_
 #define _IVI_HEADER_MAZDA_H_
 
@@ -49,5 +49,5 @@ char *wl_ivi_unpack_surface_id(void *pointer); // FIXME I haven't even tried to 
 #elif defined(_IVI_HEADER_H_) && !defined(_IVI_HEADER_MAZDA_H_)
 #error "Don't included multiple ivi headers!"
 
-#endif // _IVI_HEADER_H_
+#endif // _IVI_HEADER_H_ || _IVI_HEADER_MAZDA_H_
 

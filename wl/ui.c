@@ -5,54 +5,47 @@
 #include "../hud.h"
 #include "../log.h"
 
+#include "../gui/root.h"
+
 #include <stdlib.h>
 
-struct ui_panel *root_panel = NULL;
+static struct ui_panel *ui_root_panel = NULL;
 
 #define XYWH_TO_CHILD() do {\
     l_x = panel->pos_x < 0 ? w + panel->pos_x : x + panel->pos_x; \
     l_y = panel->pos_y < 0 ? h + panel->pos_y : y + panel->pos_x; \
-    l_w = panel->width <= 0 ? w + panel->width : x + panel->width; \
-    l_h = panel->height <= 0 ? h + panel->height : y + panel->height; \
+    l_w = panel->width <= 0 ? w + panel->width : l_x + panel->width; \
+    l_h = panel->height <= 0 ? h + panel->height : l_y + panel->height; \
 } while (0)
 
 
 bool ui_touch_down(struct ui_panel *panel, const int mx, const int my, const int x, const int y,
     const uint32_t w, const uint32_t h, const uint32_t id, const uint32_t serial)
 {
-    LOG_W("ui touch down %i %i \n", x, y);
+    LOG_D("ui touch down %i %i %i %i %u %u\n", mx, my, x, y, w, h);
     struct ui_panel **children = panel->children;
     if (children) {
         struct ui_panel *p;
+        int32_t l_x = x, l_y = y, l_w = w, l_h = h;
+        XYWH_TO_CHILD();
         while ((p = *children++)) {
-            int32_t l_x = x, l_y = y, l_w = w, l_h = h;
-            l_x = panel->pos_x < 0 ? w + panel->pos_x : x + panel->pos_x;
-            l_y = panel->pos_y < 0 ? h + panel->pos_y : y + panel->pos_y;
-            l_w = panel->width <= 0 ? w + panel->width : x + panel->width;
-            l_h = panel->height <= 0 ? h + panel->height : y + panel->height;
-
-            LOG_W("touchers %i %i %i %i\n", l_x, l_y, l_w, l_h);
+            LOG_D("touchers %i %i %i %i\n", l_x, l_y, l_w, l_h);
             if (l_x <= mx && mx <= l_w && l_y <= my && my <= l_h) {
-                if (p->children) {
-                    if (ui_touch_down(p, mx, my, l_x, l_y, l_w, l_h, id, serial)) {
-                        return true;
-                    }
-                } else {
-                    if (p->t_dn && l_x <= mx && mx <= l_w && l_y <= my && my <= l_h) {
-                        return p->t_dn(panel, mx, my, l_x, l_y, l_w, l_h, id, serial);
-                    }
+                if (ui_touch_down(p, mx, my, l_x, l_y, l_w, l_h, id, serial)) {
+                    return true;
                 }
             }
         }
     }
-
-
+    if (panel->t_dn && x <= mx && mx <= (int)w && y <= my && my <= (int)h) {
+        return panel->t_dn(panel, mx, my, x, y, w, h, id, serial);
+    }
     return false;
 }
 
 bool ui_root_touch_down(const int x, const int y, const uint32_t id, const uint32_t serial)
 {
-    return ui_touch_down(root_panel, x, y, 0, 0, root_panel->width, root_panel->height, id, serial);
+    return ui_touch_down(ui_root_panel, x, y, 0, 0, ui_root_panel->width, ui_root_panel->height, id, serial);
 }
 
 bool ui_touch_up(struct ui_panel *panel, const int x, const int y, const uint32_t w,
@@ -75,7 +68,7 @@ bool ui_touch_up(struct ui_panel *panel, const int x, const int y, const uint32_
 
 bool ui_touch_up_root(const uint32_t id, const uint32_t serial)
 {
-    return ui_touch_up(root_panel, 0, 0, root_panel->width, root_panel->height, id, serial);
+    return ui_touch_up(ui_root_panel, 0, 0, ui_root_panel->width, ui_root_panel->height, id, serial);
 }
 
 
@@ -97,13 +90,13 @@ bool ui_key_up(struct ui_panel *panel, const uint32_t key)
 
 void ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int32_t h)
 {
-    LOG_I("ui panel draw %p\n", panel);
+    LOG_D("ui panel draw %p\n", panel);
     if (panel->draw) {
         LOG_W("drawing\n");
         panel->draw(panel, x, y, w, h);
     }
 
-    // hack to avoid boxing the root_panel
+    // hack to avoid boxing the ui_root_panel
     if (panel->color) {
         int32_t l_x = x, l_y = y, l_w = w, l_h = h;
         l_x = panel->pos_x < 0 ? w + panel->pos_x : x + panel->pos_x;
@@ -120,10 +113,7 @@ void ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
     if (children) {
         struct ui_panel *p;
         int32_t l_x = x, l_y = y, l_w = w, l_h = h;
-        l_x = panel->pos_x < 0 ? w - 1 + panel->pos_x : x + panel->pos_x;
-        l_y = panel->pos_y < 0 ? h - 1 + panel->pos_y : y + panel->pos_x;
-        l_w = panel->width <= 0 ? w + panel->width : x + panel->width;
-        l_h = panel->height <= 0 ? h + panel->height : y + panel->height;
+        XYWH_TO_CHILD();
         while ((p = *children++)) {
             ui_panel_draw(p, l_x, l_y, l_w, l_h);
         }
@@ -135,7 +125,7 @@ bool ui_iter(struct ui_panel *panel)
 {
     bool draw = false;
     // FIXME
-    panel = root_panel;
+    panel = ui_root_panel;
     // LOG_W("iter panel %p \n", panel);
 
     ui_panel_draw(panel, 0, 0, panel->width, panel->height);
@@ -156,136 +146,11 @@ struct ui_panel *mk_panel(void)
 };
 
 
-static bool touch_test_1(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
-    const uint32_t id, const uint32_t serial)
-{
-    (void) p;
-    (void) mx;
-    (void) my;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    (void) id;
-    (void) serial;
-    LOG_W("touch test 1\n");
 
-    return true;
-}
-
-
-#include <pthread.h>
-#include "../sound.h"
-
-static bool touch_test_2(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
-    const uint32_t id, const uint32_t serial)
-{
-    (void) p;
-    (void) mx;
-    (void) my;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    (void) id;
-    (void) serial;
-
-    pthread_t t;
-    pthread_create(&t, NULL, hud_snd_play, (void *)NULL);
-    LOG_W("touch test 2\n");
-    return true;
-}
-
-
-static bool touch_test_3(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
-    const uint32_t id, const uint32_t serial)
-{
-    (void) p;
-    (void) mx;
-    (void) my;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    (void) id;
-    (void) serial;
-    LOG_W("touch test 3\n");
-    return true;
-}
-
-
-static bool touch_test_4(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
-    const uint32_t id, const uint32_t serial)
-{
-    (void) p;
-    (void) mx;
-    (void) my;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    (void) id;
-    (void) serial;
-    LOG_W("touch test 4\n");
-    return true;
-}
-
-
-static bool touch_test_5(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
-    const uint32_t id, const uint32_t serial)
-{
-    (void) p;
-    (void) mx;
-    (void) my;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    (void) id;
-    (void) serial;
-    LOG_W("touch test 5\n");
-return true;
-}
 
 
 struct ui_panel *init_ui(void)
 {
-    root_panel = calloc(1, sizeof (struct ui_panel));
-
-    root_panel->t_dn = ui_touch_down;
-    root_panel->t_up = ui_touch_up;
-
-    root_panel->k_dn = ui_key_down;
-    root_panel->k_dn = ui_key_up;
-
-    root_panel->width = WIDTH - 1;
-    root_panel->height = HEIGHT - 1;
-
-    LOG_W("init root children");
-    root_panel->children = calloc(6, sizeof (struct ui_panel *));
-    root_panel->children[0] = mk_panel();
-    root_panel->children[0]->t_dn = touch_test_1;
-    root_panel->children[0]->color = 0xff000000;
-    root_panel->children[0]->pos_x *= 0;
-    root_panel->children[1] = mk_panel();
-    root_panel->children[1]->t_dn = touch_test_2;
-    root_panel->children[1]->color = 0xff0000ff;
-    root_panel->children[1]->pos_x *= 1;
-    root_panel->children[2] = mk_panel();
-    root_panel->children[2]->t_dn = touch_test_3;
-    root_panel->children[2]->color = 0xff00ff00;
-    root_panel->children[2]->pos_x *= 2;
-    root_panel->children[3] = mk_panel();
-    root_panel->children[3]->t_dn = touch_test_4;
-    root_panel->children[3]->color = 0xffff0000;
-    root_panel->children[3]->pos_x *= 3;
-    root_panel->children[4] = mk_panel();
-    root_panel->children[4]->t_dn = touch_test_5;
-    root_panel->children[4]->color = 0xffff00ff;
-    root_panel->children[4]->pos_x *= 4;
-    root_panel->children[5] = NULL;
-
-    LOG_W(" -- done\n");
-
-    return root_panel;
+    ui_root_panel = gui_build_root();
+    return ui_root_panel;
 }

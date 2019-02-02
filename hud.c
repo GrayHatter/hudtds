@@ -14,7 +14,7 @@
 
 static bool done = false;
 
-LOGLVL curr_log_lvl = LOGLVL_NONE;
+LOGLVL curr_log_lvl = LOGLVL_INFO;
 
 
 int main(void)

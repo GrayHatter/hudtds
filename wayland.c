@@ -232,7 +232,7 @@ static void ivi_default(void *data, struct wl_interface *ivi_interface, void *p,
 
 static void ivi_shell_create(void *data, struct wl_interface *interface, char *name)
 {
-    LOG_E("IVI SHELL created %s \n", name);
+    LOG_I("IVI SHELL created %s \n", name);
     (void) data;
     if (strcmp("HUDTDS", name) == 0) {
         struct wl_proxy *ani_grp = wl_proxy_create((struct wl_proxy *) interface, &wl_ivi_animation_group_interface);
@@ -252,7 +252,7 @@ static void ivi_shell_destrory(void *data, struct wl_interface *ivi_interface, v
 {
     (void) data;
     (void) ivi_interface;
-    LOG_E("IVI SHELL destroy %x %x\n", (int)p, (int)pp);
+    LOG_N("IVI SHELL destroy %x %x\n", (int)p, (int)pp);
 }
 
 static void ivi_shell_other(void *data, void *ivi, void *p)

@@ -3,6 +3,7 @@ LD = arm-linux-gnueabihf-ld
 
 OBJ = hud.o sound.o wayland.o info.o
 OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o
+OBJ += gui/root.o
 
 CFLAGS := -Wall -Wextra -Werror $(CFLAGS)
 CFLAGS += -Wno-sign-compare
