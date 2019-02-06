@@ -3,7 +3,7 @@ LD = arm-linux-gnueabihf-ld
 
 OBJ = hud.o audio.o wayland.o info.o
 OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o wl/text.o
-OBJ += gui/root.o gui/nav.o
+OBJ += gui/root.o gui/nav.o gui/music.o
 
 CFLAGS := -Wall -Wextra -Werror $(CFLAGS)
 CFLAGS += -Wno-sign-compare
@@ -20,8 +20,6 @@ LIBS   +=  -lavcodec -lavutil -lavformat -lswresample
 LIBS   +=  -lffi -lgcc_s -lwayland-server -ldl -lrt -lpthread -lm -lasound
 LIBS   +=  -lvorbis -lvorbisfile -logg
 # LIBS   +=  libav/libavformat.a libav/libavcodec.a libav/libavutil.a libav/libavresample.a
-
-
 
 %.o: %.c %.h
 	$(CC) -c -o $@ $(INCLUDE) -I$(shell dirname $<) $(CFLAGS) $<

@@ -94,7 +94,6 @@ void ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
 {
     LOG_D("ui panel draw %p\n", panel);
     if (panel->draw) {
-        LOG_W("drawing\n");
         panel->draw(panel, x, y, w, h);
     }
 
@@ -132,8 +131,6 @@ bool ui_iter(struct ui_panel *panel)
     panel = ui_root_panel;
     // LOG_W("iter panel %p \n", panel);
 
-    tmp_draw_helper(30, 30);
-
     hud_surface_damage(30, 30, 60, 60);
     hud_surface_commit();
 
@@ -162,5 +159,6 @@ struct ui_panel *mk_panel(void)
 struct ui_panel *init_ui(void)
 {
     ui_root_panel = gui_build_root();
+    init_text();
     return ui_root_panel;
 }

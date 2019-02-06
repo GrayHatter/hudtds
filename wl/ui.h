@@ -54,6 +54,7 @@ struct ui_panel {
     struct ui_panel *prev;
     struct ui_panel *next;
 
+    // TODO, I think I want to remove color
     color_t color;
 
     struct ui_panel **children;

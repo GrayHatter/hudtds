@@ -7,6 +7,10 @@
 
 #include "../log.h"
 
+static FT_Library library = NULL;
+static FT_Face face = NULL;
+
+
 void draw_char(FT_Bitmap *bm, uint32_t x, uint32_t y)
 {
     uint32_t *p = root_pool_data->memory + x + y * WIDTH;
@@ -25,44 +29,53 @@ void draw_char(FT_Bitmap *bm, uint32_t x, uint32_t y)
 
 void init_text(void)
 {
-    FT_Library library;
     FT_Init_FreeType(&library);
-
-    FT_Face face;
     FT_New_Face(library, "./SCP.otf", 0, &face);
 
     // FIXME magic numbers width, height
-    FT_Set_Char_Size(face, 0, 10*64, 800, 480);
+    FT_Set_Char_Size(face, 0, 3*64, 800, 480);
 
 
-    int glyph_index = FT_Get_Char_Index(face, 'a' );
-    FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
-    FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+    // int glyph_index = FT_Get_Char_Index(face, 'a' );
+    // FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
+    // FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
 
 }
 
-void tmp_draw_helper(int x, int y)
+void text_draw_string(char *string, int32_t x, int32_t y)
 {
-    FT_Library library;
-    FT_Init_FreeType(&library);
+    if (!string) {
+        return;
+    }
 
-    FT_Face face;
-    FT_New_Face(library, "./SCP.otf", 0, &face);
-
-    // FIXME magic numbers width, height
-    FT_Set_Char_Size(face, 0, 4*64, 800, 480);
-
-
-    char *name = "Hudtds!";
-    int len = strlen(name);
+    // FIXME h/w checks
 
     int glyph_index;
-    for (int i = 0; i < len; i++) {
-        glyph_index = FT_Get_Char_Index(face, name[i]);
+    for (unsigned int i = 0; i < strlen(string); i++) {
+        glyph_index = FT_Get_Char_Index(face, string[i]);
+        FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
+        FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+        if (x + face->glyph->bitmap_left + face->glyph->bitmap.width < WIDTH) {
+            draw_char(&face->glyph->bitmap, x + face->glyph->bitmap_left, y - face->glyph->bitmap_top);
+        }
+        x += face->glyph->advance.x >> 6;
+    }
+}
+
+void text_draw_string_width(char *string, int32_t x, int32_t y, int32_t w)
+{
+    (void) w;
+
+    if (!string) {
+        return;
+    }
+
+    int glyph_index;
+    for (unsigned int i = 0; i < strlen(string); i++) {
+        glyph_index = FT_Get_Char_Index(face, string[i]);
         FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
         FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
         draw_char(&face->glyph->bitmap, x + face->glyph->bitmap_left, y - face->glyph->bitmap_top);
         x += face->glyph->advance.x >> 6;
     }
-
 }
