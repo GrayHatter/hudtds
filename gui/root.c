@@ -15,6 +15,9 @@ struct ui_panel root_panel = {
     .width = WIDTH - 1,
     .height = HEIGHT - 1,
 
+    .name = "root frame",
+
+
     .children = (struct ui_panel*[]){
         &main_frame,
         &nav_frame,

@@ -1,9 +1,8 @@
 #include "keyboard.h"
 
-#include "../sound.h"
+#include "../audio.h"
 #include "../log.h"
 
-#include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -107,8 +106,6 @@ static bool known_key(uint32_t key, uint32_t state)
 
         case MZD_KEYMAP_EXT_MUSIC: {
             LOG_E("Flavor music\n");
-            pthread_t t;
-            pthread_create(&t, NULL, hud_snd_play, (void *)NULL);
             return true;
         }
 

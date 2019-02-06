@@ -34,6 +34,8 @@ struct ui_panel {
     bool draw_needed;
     PANEL_TYPE type;
 
+    char *name;
+
     touch_dn *t_dn;
     touch_up *t_mv;
     touch_up *t_up;

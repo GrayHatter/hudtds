@@ -3,6 +3,7 @@
 #include "info.h"
 #include "log.h"
 #include "wayland.h"
+#include "audio.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -48,6 +49,8 @@ int main(void)
 
     bind_buffer(buffer, surface);
     LOG_N("bind done\n");
+
+    audio_thread_start();
 
     //init_cursor(pool, CURSOR_WIDTH, CURSOR_HEIGHT, CURSOR_HOT_SPOT_X, CURSOR_HOT_SPOT_Y);
     // LOG_N("cursor done\n");
