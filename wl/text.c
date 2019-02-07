@@ -10,6 +10,8 @@
 static FT_Library library = NULL;
 static FT_Face face = NULL;
 
+#define CURRENT_FACE_HEIGHT face->height / 64
+
 
 void draw_char(FT_Bitmap *bm, uint32_t x, uint32_t y)
 {
@@ -19,7 +21,7 @@ void draw_char(FT_Bitmap *bm, uint32_t x, uint32_t y)
 
     for (int i = bm->rows; i > 0; i--) {
         for (int j = bm->width; j > 0; j--) {
-            d = 0xff000000 | (*g) << 16 | (*g) << 8 | *g;
+            d = 0x00000000 | (*g) << 16 | (*g) << 8 | *g;
             *p++ = ~d;
             g++;
         }
@@ -42,6 +44,7 @@ void init_text(void)
 
 }
 
+
 void text_draw_string(char *string, int32_t x, int32_t y)
 {
     if (!string) {
@@ -50,6 +53,7 @@ void text_draw_string(char *string, int32_t x, int32_t y)
 
     // FIXME h/w checks
 
+    y += CURRENT_FACE_HEIGHT;
     int glyph_index;
     for (unsigned int i = 0; i < strlen(string); i++) {
         glyph_index = FT_Get_Char_Index(face, string[i]);
@@ -62,6 +66,7 @@ void text_draw_string(char *string, int32_t x, int32_t y)
     }
 }
 
+
 void text_draw_string_width(char *string, int32_t x, int32_t y, int32_t w)
 {
     (void) w;
@@ -69,6 +74,8 @@ void text_draw_string_width(char *string, int32_t x, int32_t y, int32_t w)
     if (!string) {
         return;
     }
+
+    y += CURRENT_FACE_HEIGHT;
 
     int glyph_index;
     for (unsigned int i = 0; i < strlen(string); i++) {

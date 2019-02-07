@@ -33,17 +33,9 @@ static void draw_music_frame(struct ui_panel *p, int32_t x, int32_t y, int32_t w
 
 static void draw_music_entry(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
 {
-    (void) p;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    LOG_E("Draw music entry, %i %i %i %i (%i)\n", x, y, w, h, y + p->height);
-
-    draw_box_c(x, y, w, y + p->height, p->color);
-
     struct music_entry *music = (struct music_entry *)p;
-    LOG_E("name %s\n", music->track_title);
+    LOG_E("Draw music entry (track: %s), %i %i %i %i (%i)\n", music->track_title, x, y, w, h, y + p->height);
+    draw_box_c(x, y, w, y + p->height, p->color);
     text_draw_string(music->track_title, x + 3, y + 3);
 }
 
@@ -55,7 +47,7 @@ struct music_entry music_entry_0 = {
         .draw = draw_music_entry,
         .pos_x = 0,
         .pos_y = 0,
-        .height = 60,
+        .height = 40,
         .color = 0xffff00ff,
         .children = NULL,
     },
@@ -68,7 +60,7 @@ struct ui_panel music_frame = {
     .type = PANEL_FRAME,
     .name = "music frame",
     .draw = draw_music_frame,
-    .pos_x = 0,
+    .pos_x = 10,
     .pos_y = 50,
     .height = -80,
     .children = (struct ui_panel*[]) {

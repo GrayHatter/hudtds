@@ -100,7 +100,7 @@ void draw_vline_c(int32_t x, int32_t y, int32_t h, uint32_t c)
 void draw_hline_c(int32_t x, int32_t y, int32_t w, uint32_t c)
 {
     // LOG_E("hl %i %i %i\n", x, y, w);
-    if (CONSTRAIN_SIZE(x, y, 1) && CONSTRAIN_SIZE(x, w, 1) ) {
+    if (CONSTRAIN_SIZE(x, y, 0) && CONSTRAIN_SIZE(w, y + 1, 0) ) {
         LOG_E("draw_hline no\n");
         LOG_E("hl %i %i %i\n", x, y, w);
         return;
