@@ -256,7 +256,7 @@ static AVCodecContext *init_codec(AVCodecContext *ctx, AVDictionary **metadata)
 // #define AUDIO_REFILL_THRESH 4096
 static void play_filename(char *filename)
 {
-    LOG_I("Playing %s\n", filename);
+    LOG_N("Playing %s\n", filename);
     int stream_id = -1;
     AVFormatContext *fcon = open_audio_file(filename, false, &stream_id);
     if (!fcon) {
@@ -299,9 +299,9 @@ static void play_filename(char *filename)
     LOG_I("Bitstream is %i channel (%lu), %iHz\n", c_ctx->channels, (long)c_ctx->channel_layout, c_ctx->sample_rate);
     LOG_I("PCM is %i channel (%i), %iHz\n", DEFAULT_CHANNELS, AV_CH_LAYOUT_STEREO, DEFAULT_SAMPLE_RATE);
 
-
     LOG_T("Main decode loop\n");
-    while(av_read_frame(fcon, &avpkt) >= 0) {
+    uint8_t *output = malloc(AUDIO_BUF_SIZE * 4);
+    while (av_read_frame(fcon, &avpkt) >= 0) {
         if (avpkt.stream_index == stream_id) {
             LOG_T("correct stream_id\n");
             int have_frame = 0;
@@ -316,7 +316,7 @@ static void play_filename(char *filename)
 
                 int out_samples = av_rescale_rnd(swr_get_delay(swr, c_ctx->sample_rate) + avframe->nb_samples,
                     DEFAULT_SAMPLE_RATE, c_ctx->sample_rate, AV_ROUND_UP);
-                uint8_t *output = malloc(out_samples * 4);
+                output = realloc(output, out_samples * 4);
                 int count = swr_convert(swr, &output, out_samples,
                     (const uint8_t **)avframe->data, avframe->nb_samples);
                 if (count < 0 ) {
@@ -324,16 +324,10 @@ static void play_filename(char *filename)
                     continue;
                 }
 
-                // LOG_E("playing %i %li\n", count, available);
                 LOG_T("Frame %i\n", count);
-                // pcm_play_2chan((void**)output, available);
                 pcm_play(output, count);
-
-                // av_freep(&output);
-                free(output);
             } else {
                 LOG_E("bad frame, still reading\n");
-                //printf("Not Finished\n");
             }
         } else {
             LOG_E("Not an audio frame\n");
@@ -341,6 +335,7 @@ static void play_filename(char *filename)
     }
     LOG_E("files done\n");
 
+    free(output);
     avcodec_close(c_ctx);
     avformat_free_context(fcon);
     avcodec_free_frame(&avframe);

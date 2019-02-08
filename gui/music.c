@@ -121,6 +121,74 @@ struct music_entry music_entry_3 = {
 
 };
 
+struct music_entry music_entry_4 = {
+    .panel = {
+        .type = PANEL_LIST_ENTRY,
+        .name = "music entry_4",
+        .draw = draw_music_entry,
+        .pos_x = 0,
+        .pos_y = 160,
+        .height = 40,
+        .color = 0xffff00ff,
+        .children = NULL,
+    },
+
+    .track_title = "test track 04",
+    .track_loc = "./black.mp3"
+
+};
+
+struct music_entry music_entry_5 = {
+    .panel = {
+        .type = PANEL_LIST_ENTRY,
+        .name = "music entry_5",
+        .draw = draw_music_entry,
+        .pos_x = 0,
+        .pos_y = 200,
+        .height = 40,
+        .color = 0xffff00ff,
+        .children = NULL,
+    },
+
+    .track_title = "test track 05",
+    .track_loc = "./dream.mp3"
+
+};
+
+struct music_entry music_entry_6 = {
+    .panel = {
+        .type = PANEL_LIST_ENTRY,
+        .name = "music entry_6",
+        .draw = draw_music_entry,
+        .pos_x = 0,
+        .pos_y = 240,
+        .height = 40,
+        .color = 0xffff00ff,
+        .children = NULL,
+    },
+
+    .track_title = "test track 06",
+    .track_loc = "./test.ogg"
+
+};
+
+struct music_entry music_entry_7 = {
+    .panel = {
+        .type = PANEL_LIST_ENTRY,
+        .name = "music entry_7",
+        .draw = draw_music_entry,
+        .pos_x = 0,
+        .pos_y = 280,
+        .height = 40,
+        .color = 0xffff00ff,
+        .children = NULL,
+    },
+
+    .track_title = "test track 07",
+    .track_loc = "./test2.ogg"
+
+};
+
 static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_t s)
 {
     (void) s;
@@ -142,9 +210,9 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                             if (entry != first) {
                                 prev->panel.focused = true;
                                 entry->panel.focused = false;
-                                LOG_E("move to prev\n");
+                                LOG_T("move to prev\n");
                             } else {
-                                LOG_E("already at beginning\n");
+                                LOG_D("already at beginning\n");
                                 return false;
                             }
                             break;
@@ -152,35 +220,34 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                         case MZD_KEYMAP_ROTATE_RIGHT:
                         case MZD_KEYMAP_DPAD_DOWN: {
                             if (*children) {
-                                LOG_E("move to next %s\n", (*children)->panel.name);
+                                LOG_T("move to next %s\n", (*children)->panel.name);
                                 (*children)->panel.focused = true;
                                 entry->panel.focused = false;
                             } else {
-                                LOG_E("already at end\n");
+                                LOG_D("already at end\n");
                                 return false;
                             }
                             break;
                         }
                         case MZD_KEYMAP_DPAD_CENTER: {
-                            LOG_E("play this one %s (%s)\n", entry->track_title, entry->track_loc);
+                            LOG_D("play this one %s (%s)\n", entry->track_title, entry->track_loc);
                             if (entry->track_loc) {
                                 postmsg_audio(AMSG_PLAY, entry->track_loc);
                             }
                             break;
                         }
                         default: {
-                            LOG_E("frame_key_down default case, can't happen!\n");
+                            LOG_T("frame_key_down default case, can't happen!\n");
                             return false;
                         }
                     }
-                    LOG_E("found_true exit\n");
                     return true;
                 }
 
                 prev = entry;
             }
             if (!found_focus) {
-                LOG_E("focus not found\n");
+                LOG_D("focus not found\n");
                 first->panel.focused = true;
             }
         }
@@ -202,6 +269,10 @@ struct ui_panel music_frame = {
         (struct ui_panel*)&music_entry_1,
         (struct ui_panel*)&music_entry_2,
         (struct ui_panel*)&music_entry_3,
+        (struct ui_panel*)&music_entry_4,
+        (struct ui_panel*)&music_entry_5,
+        (struct ui_panel*)&music_entry_6,
+        (struct ui_panel*)&music_entry_7,
         NULL
     }
 };

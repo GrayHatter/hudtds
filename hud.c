@@ -15,7 +15,7 @@
 
 static bool done = false;
 
-LOGLVL curr_log_lvl = LOGLVL_INFO;
+LOGLVL curr_log_lvl = LOGLVL_NOTE;
 
 
 int main(void)
@@ -28,27 +28,27 @@ int main(void)
         }
     }
 
-    LOG_N("Main\n");
+    LOG_D("Main startup\n");
     struct wl_buffer *buffer;
     struct wl_shm_pool *pool;
     struct wl_shell_surface *surface;
 
     init_wayland();
-    LOG_N("wl init done\n");
+    LOG_D("wl init done\n");
 
     // get_info();
 
     pool = init_memory_pool();
-    LOG_N("Pool done\n");
+    LOG_T("Pool done\n");
 
     surface = init_root_surface();
-    LOG_N("surface done\n");
+    LOG_T("surface done\n");
 
     buffer = init_buffer(pool, WIDTH, HEIGHT);
-    LOG_N("buffer done\n");
+    LOG_T("buffer done\n");
 
     bind_buffer(buffer, surface);
-    LOG_N("bind done\n");
+    LOG_T("bind done\n");
 
     audio_thread_start();
 

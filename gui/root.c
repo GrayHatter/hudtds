@@ -46,8 +46,5 @@ struct ui_panel root_panel = {
 
 struct ui_panel *gui_build_root(void)
 {
-    LOG_W("init root children");
-
-    LOG_W(" -- done\n");
     return &root_panel;
 }

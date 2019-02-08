@@ -16,7 +16,7 @@ static void keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard, uin
     (void) keyboard;
     (void) fd;
     (void) size;
-    LOG_E("keymap format %u\n", format);
+    LOG_I("keymap format %u\n", format);
 }
 
 static void keyboard_handle_enter(void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface,
@@ -27,7 +27,7 @@ static void keyboard_handle_enter(void *data, struct wl_keyboard *keyboard, uint
     (void) serial;
     (void) surface;
     (void) keys;
-    LOG_E("Keyboard gained focus\n");
+    LOG_I("Keyboard gained focus\n");
 }
 
 static void keyboard_handle_leave(void *data, struct wl_keyboard *keyboard, uint32_t serial, struct wl_surface *surface)
@@ -36,7 +36,7 @@ static void keyboard_handle_leave(void *data, struct wl_keyboard *keyboard, uint
     (void) keyboard;
     (void) serial;
     (void) surface;
-    LOG_E("Keyboard lost focus\n");
+    LOG_I("Keyboard lost focus\n");
 }
 
 
@@ -164,7 +164,7 @@ static void keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard, 
     (void) data;
     (void) keyboard;
     (void) serial;
-    LOG_E("Mods depressed %d, latched %d, locked %d, group %d\n", mods_depressed, mods_latched, mods_locked, group);
+    LOG_I("Mods depressed %d, latched %d, locked %d, group %d\n", mods_depressed, mods_latched, mods_locked, group);
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {
@@ -178,7 +178,7 @@ static const struct wl_keyboard_listener keyboard_listener = {
 bool hud_kb_init(struct wl_seat *seat)
 {
     if (!keyboard){
-        LOG_E("setting keys\n");
+        LOG_I("setting keys\n");
         keyboard = wl_seat_get_keyboard(seat);
         wl_keyboard_add_listener(keyboard, &keyboard_listener, NULL);
         return true;
@@ -189,7 +189,7 @@ bool hud_kb_init(struct wl_seat *seat)
 bool hud_kb_raze(void)
 {
     if (keyboard) {
-        LOG_E("killing keys\n");
+        LOG_I("killing keys\n");
         wl_keyboard_destroy(keyboard);
         keyboard = NULL;
         return true;

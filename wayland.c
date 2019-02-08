@@ -32,7 +32,7 @@ struct pool_data *root_pool_data;
 static void seat_handle_capabilities(void *data, struct wl_seat *seat, enum wl_seat_capability caps)
 {
     (void) data;
-    LOG_E("seat cap\n");
+    LOG_D("seat cap\n");
 
     if (caps & WL_SEAT_CAPABILITY_KEYBOARD) {
         hud_kb_init(seat);
@@ -233,7 +233,7 @@ static void ivi_default(void *data, struct wl_interface *ivi_interface, void *p,
 
 static void ivi_shell_create(void *data, struct wl_interface *interface, char *name)
 {
-    LOG_I("IVI SHELL created %s \n", name);
+    LOG_W("IVI SHELL created %s \n", name);
     (void) data;
     if (strcmp("HUDTDS", name) == 0) {
         struct wl_proxy *ani_grp = wl_proxy_create((struct wl_proxy *) interface, &wl_ivi_animation_group_interface);
@@ -254,7 +254,7 @@ static void ivi_shell_destrory(void *data, struct wl_interface *ivi_interface, v
 {
     (void) data;
     (void) ivi_interface;
-    LOG_N("IVI SHELL destroy %x %x\n", (int)p, (int)pp);
+    LOG_W("IVI SHELL destroy %x %x\n", (int)p, (int)pp);
 }
 
 static void ivi_shell_other(void *data, void *ivi, void *p)
