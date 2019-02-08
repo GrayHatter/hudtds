@@ -5,6 +5,7 @@
 
 #include "../hud.h"
 #include "../log.h"
+#include "../wayland.h"
 
 #include "../gui/root.h"
 
@@ -61,7 +62,7 @@ bool ui_touch_up(struct ui_panel *panel, const int x, const int y, const uint32_
     if (children) {
         struct ui_panel *p;
         while ((p = *children++)) {
-          ui_touch_up(p, x, y, w, h, id, serial);
+            ui_touch_up(p, x, y, w, h, id, serial);
         }
     }
     return true;
@@ -74,19 +75,75 @@ bool ui_touch_up_root(const uint32_t id, const uint32_t serial)
 }
 
 
-bool ui_key_down(struct ui_panel *panel, const uint32_t key)
+static struct ui_panel *find_focused(struct ui_panel *panel)
 {
-    (void) panel;
-    (void) key;
-    return true;
+    struct ui_panel *focused = NULL;
+
+    struct ui_panel **children = panel->children;
+    if (children) {
+        struct ui_panel *p;
+        while ((p = *children++)) {
+            if (!focused && p->focused) {
+                focused = p;
+            } else {
+                p->focused = false;
+            }
+        }
+    }
+
+    return focused;
 }
 
 
-bool ui_key_up(struct ui_panel *panel, const uint32_t key)
+bool ui_key_down(struct ui_panel *panel, const uint32_t key, const uint32_t serial)
 {
-    (void) panel;
-    (void) key;
-    return true;
+    LOG_T("Keydown on %s\n", panel->name);
+
+    struct ui_panel *focused = find_focused(panel);
+    if (focused) {
+        if (ui_key_down(focused, key, serial)) {
+            return true;
+        }
+    }
+
+    if (panel->k_dn) {
+        if (panel->k_dn(panel, key, serial)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool ui_key_up(struct ui_panel *panel, const uint32_t key, const uint32_t serial)
+{
+    LOG_T("Keyup on %s", panel->name);
+
+    struct ui_panel *focused = find_focused(panel);
+    if (focused) {
+        if (ui_key_up(focused, key, serial)) {
+            return true;
+        }
+    }
+
+    if (panel->k_up) {
+        if (panel->k_up(panel, key, serial)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool ui_key_down_root(const uint32_t key, const uint32_t serial)
+{
+    return ui_key_down(ui_root_panel, key, serial);
+}
+
+
+bool ui_key_up_root(const uint32_t key, const uint32_t serial)
+{
+    return ui_key_up(ui_root_panel, key, serial);
 }
 
 
@@ -95,10 +152,8 @@ void ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
     LOG_D("ui panel draw %p\n", panel);
     if (panel->draw) {
         panel->draw(panel, x, y, w, h);
-    }
-
-    // hack to avoid boxing the ui_root_panel
-    if (panel->color) {
+    } else if (panel->color) {
+        // hack to avoid boxing the ui_root_panel
         int32_t l_x = x, l_y = y, l_w = w, l_h = h;
         l_x = panel->pos_x < 0 ? w + panel->pos_x : x + panel->pos_x;
         l_y = panel->pos_y < 0 ? h + panel->pos_y : y + panel->pos_y;
@@ -120,8 +175,6 @@ void ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
         }
     }
 }
-
-#include "../wayland.h"
 
 
 bool ui_iter(struct ui_panel *panel)

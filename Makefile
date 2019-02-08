@@ -8,25 +8,34 @@ OBJ += gui/root.o gui/nav.o gui/music.o
 CFLAGS := -Wall -Wextra -Werror $(CFLAGS)
 CFLAGS += -Wno-sign-compare
 
-CFLAGS += -std=c11 -O0 -mcpu=arm7
+CFLAGS += -Wno-deprecated-declarations
 
-CFLAGS += -mfloat-abi=hard
+CFLAGS += -std=c11 -O0
+
+# CFLAGS += -isystem/usr/include/freetype2/
+
+CFLAGS += -mcpu=arm7 -mfloat-abi=hard
 CFLAGS += --sysroot=/usr/arm-linux-gnueabihf
 CFLAGS += -L/home/grayhatter/mazda/libs2/lib/
 CFLAGS += -I/usr/arm-linux-gnueabihf/include/freetype2/
 
-LIBS   :=  -lfreetype -lz -lwayland-client -lwayland-ivi-shell-client -lwayland-ivi-client
+
+MAZDA_C_SO =
+MAZDA_C_SO = /home/grayhatter/mazda/libs2/lib/libc.so.6
+
+LIBS   +=  -lfreetype -lz
+LIBS   +=  -lwayland-ivi-shell-client -lwayland-ivi-client
+LIBS   +=  -lwayland-client
 LIBS   +=  -lavcodec -lavutil -lavformat -lswresample
-LIBS   +=  -lffi -lgcc_s -lwayland-server -ldl -lrt -lpthread -lm -lasound
+LIBS   +=  -lffi -lgcc_s -ldl -lrt -lpthread -lm -lasound
 LIBS   +=  -lvorbis -lvorbisfile -logg
-# LIBS   +=  libav/libavformat.a libav/libavcodec.a libav/libavutil.a libav/libavresample.a
 
 %.o: %.c %.h
 	$(CC) -c -o $@ $(INCLUDE) -I$(shell dirname $<) $(CFLAGS) $<
 
 hudtds: $(OBJ)
 	# $(LD) --verbose -o hudtds $(OBJ) $(LDFLAGS) $(LIBS)
-	$(CC) $(OBJ) $(CFLAGS) $(LIBS) /home/grayhatter/mazda/libs2/lib/libc.so.6 -o $@
+	$(CC) $(OBJ) $(CFLAGS) $(LIBS) $(MAZDA_C_SO) -o $@
 
 all: hudtds
 

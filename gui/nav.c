@@ -1,6 +1,8 @@
 #include "nav.h"
 
 #include "../wl/ui.h"
+#include "../wl/draw.h"
+
 #include "../log.h"
 #include "../audio.h"
 
@@ -83,7 +85,19 @@ static bool touch_exit(struct ui_panel *p, const int mx, const int my, const int
 }
 
 
+static void draw_button(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    x = p->pos_x < 0 ? w + p->pos_x : x + p->pos_x;
+    y = p->pos_y < 0 ? h + p->pos_y : y + p->pos_y;
+    w = p->width <= 0 ? w + p->width : x + p->width;
+    h = p->height <= 0 ? h + p->height : y + p->height;
+
+    draw_box_c(x, y, w, h, p->color);
+}
+
+
 struct ui_panel nav_btn_0 = {
+    .draw = draw_button,
     .color = 0xff888888,
     .name = "nav_btn_0",
     .t_dn = touch_test_1,
@@ -94,6 +108,7 @@ struct ui_panel nav_btn_0 = {
 };
 
 struct ui_panel nav_btn_1 = {
+    .draw = draw_button,
     .color = 0xffff0000,
     .name = "nav_btn_1",
     .t_dn = touch_test_1,
@@ -104,6 +119,7 @@ struct ui_panel nav_btn_1 = {
 };
 
 struct ui_panel nav_btn_2 = {
+    .draw = draw_button,
     .color = 0xffffffff,
     .name = "nav_btn_2",
     .t_dn = touch_test_1,
@@ -114,6 +130,7 @@ struct ui_panel nav_btn_2 = {
 };
 
 struct ui_panel nav_btn_3 = {
+    .draw = draw_button,
     .color = 0xff00ff00,
     .name = "nav_btn_3",
     .t_dn = touch_test_1,
@@ -124,6 +141,7 @@ struct ui_panel nav_btn_3 = {
 };
 
 struct ui_panel nav_btn_4 = {
+    .draw = draw_button,
     .color = 0xff00ffff,
     .name = "nav_btn_4",
     .t_dn = touch_test_1,
@@ -134,6 +152,7 @@ struct ui_panel nav_btn_4 = {
 };
 
 struct ui_panel nav_btn_5 = {
+    .draw = draw_button,
     .color = 0xffff00ff,
     .name = "nav_btn_5",
     .t_dn = touch_test_1,
@@ -144,6 +163,7 @@ struct ui_panel nav_btn_5 = {
 };
 
 struct ui_panel nav_btn_6 = {
+    .draw = draw_button,
     .color = 0xff88ffff,
     .name = "nav_btn_6",
     .t_dn = touch_test_1,
@@ -154,6 +174,7 @@ struct ui_panel nav_btn_6 = {
 };
 
 struct ui_panel nav_btn_7 = {
+    .draw = draw_button,
     .color = 0xffff8888,
     .name = "nav_btn_7",
     .t_dn = touch_play_1,
@@ -164,6 +185,7 @@ struct ui_panel nav_btn_7 = {
 };
 
 struct ui_panel nav_btn_8 = {
+    .draw = draw_button,
     .color = 0xff8888ff,
     .name = "nav_btn_8",
     .t_dn = touch_play_2,
@@ -174,6 +196,7 @@ struct ui_panel nav_btn_8 = {
 };
 
 struct ui_panel nav_btn_9 = {
+    .draw = draw_button,
     .color = 0xff000000,
     .name = "nav_btn_9",
     .t_dn = touch_exit,
@@ -185,6 +208,7 @@ struct ui_panel nav_btn_9 = {
 
 
 struct ui_panel nav_frame = {
+    .draw = draw_button,
     .type = PANEL_FRAME,
     .name = "nav frame",
     .pos_x = 0,

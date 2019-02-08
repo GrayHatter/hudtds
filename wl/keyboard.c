@@ -1,5 +1,7 @@
 #include "keyboard.h"
 
+#include "ui.h"
+
 #include "../audio.h"
 #include "../log.h"
 
@@ -37,30 +39,6 @@ static void keyboard_handle_leave(void *data, struct wl_keyboard *keyboard, uint
     LOG_E("Keyboard lost focus\n");
 }
 
-typedef enum {
-    MZD_KEYMAP_ROTATE_LEFT  =  49,
-    MZD_KEYMAP_ROTATE_RIGHT =  50,
-
-    MZD_KEYMAP_DPAD_UP      = 103,
-    MZD_KEYMAP_DPAD_DOWN    = 108,
-    MZD_KEYMAP_DPAD_LEFT    = 105,
-    MZD_KEYMAP_DPAD_RIGHT   = 106,
-    MZD_KEYMAP_DPAD_CENTER  =  28,
-
-    MZD_KEYMAP_EXT_BACK     =  14,
-    MZD_KEYMAP_EXT_STAR     =  20,
-    MZD_KEYMAP_EXT_MUSIC    =  18,
-    MZD_KEYMAP_EXT_HOME     = 102,
-    MZD_KEYMAP_EXT_NAV      =  19,
-
-    MZD_KEYMAP_WHEEL_PREV   =  26,
-    MZD_KEYMAP_WHEEL_NEXT   =  27,
-    MZD_KEYMAP_WHEEL_SEND   =  44,
-    MZD_KEYMAP_WHEEL_END    =  45,
-    MZD_KEYMAP_WHEEL_VOICE  =  34,
-
-} MZD_KEYMAP;
-
 
 static bool known_key(uint32_t key, uint32_t state)
 {
@@ -70,12 +48,12 @@ static bool known_key(uint32_t key, uint32_t state)
 
     switch (key) {
         case MZD_KEYMAP_ROTATE_LEFT: {
-            LOG_E("rotate left\n");
+            // LOG_E("rotate left\n");
             return true;
         }
 
         case MZD_KEYMAP_ROTATE_RIGHT: {
-            LOG_E("rotate right\n");
+            // LOG_E("rotate right\n");
             return true;
         }
 
@@ -154,10 +132,11 @@ static bool known_key(uint32_t key, uint32_t state)
             return true;
         }
         default: {
-            // LOG_E("other key %d %d\n", key, state);
+            LOG_E("other key %d %d\n", key, state);
             return false;
         }
     }
+    return false;
 }
 
 static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t time, uint32_t key,
@@ -168,8 +147,14 @@ static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard, uint32
     (void) serial;
     (void) time;
 
-    if (!known_key(key, state) && state) {
-        LOG_E("Key is %d state is %d\n", key, state);
+    // TODO this is wrong
+    if (state) {
+        if (!known_key(key, state)) {
+            LOG_E("Key is %d state is %d\n", key, state);
+        }
+        ui_key_down_root(key, serial);
+    } else {
+        ui_key_up_root(key, serial);
     }
 }
 

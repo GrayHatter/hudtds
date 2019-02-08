@@ -24,6 +24,7 @@ static void draw_root_frame(struct ui_panel *p, int32_t x, int32_t y, int32_t w,
 struct ui_panel main_frame = {
     .name = "main frame",
     .draw = draw_root_frame,
+    .focused = true,
     .children = (struct ui_panel*[]) {
         &music_frame,
         NULL,

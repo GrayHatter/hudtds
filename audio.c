@@ -27,6 +27,13 @@
 #include <pthread.h>
 
 
+#ifndef __arm__
+#define CODEC_ID_MP3 AV_CODEC_ID_MP3
+#define avcodec_free_frame av_frame_free
+#define avcodec_alloc_frame av_frame_alloc
+#endif
+
+
 static char *device = "default";
 
 #define DEFAULT_CHANNELS    2
@@ -275,7 +282,7 @@ static void play_filename(char *filename)
         return;
     }
 
-    LOG_I("context data layout %llu %i %i %i \n", c_ctx->channel_layout, c_ctx->channels, c_ctx->sample_rate, c_ctx->sample_fmt);
+    LOG_I("context data layout %lu %i %i %i \n", (long)c_ctx->channel_layout, c_ctx->channels, c_ctx->sample_rate, c_ctx->sample_fmt);
 
 
     struct SwrContext *swr = swr_alloc_set_opts(NULL,
@@ -289,7 +296,7 @@ static void play_filename(char *filename)
     swr_init(swr);
 
     // int16_t *audiobuffer = NULL;
-    LOG_I("Bitstream is %i channel (%llu), %iHz\n", c_ctx->channels, c_ctx->channel_layout, c_ctx->sample_rate);
+    LOG_I("Bitstream is %i channel (%lu), %iHz\n", c_ctx->channels, (long)c_ctx->channel_layout, c_ctx->sample_rate);
     LOG_I("PCM is %i channel (%i), %iHz\n", DEFAULT_CHANNELS, AV_CH_LAYOUT_STEREO, DEFAULT_SAMPLE_RATE);
 
 

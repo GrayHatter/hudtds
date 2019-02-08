@@ -255,7 +255,7 @@ seat_handle_capabilities(void *data, struct wl_seat *wl_seat,
 }
 
 static const struct wl_seat_listener seat_listener = {
-    seat_handle_capabilities,
+    .capabilities = seat_handle_capabilities,
 };
 
 static void
@@ -344,8 +344,8 @@ output_handle_mode(void *data, struct wl_output *wl_output,
 }
 
 static const struct wl_output_listener output_listener = {
-    output_handle_geometry,
-    output_handle_mode,
+    .geometry = output_handle_geometry,
+    .mode = output_handle_mode,
 };
 
 static void

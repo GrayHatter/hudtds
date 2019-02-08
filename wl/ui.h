@@ -13,8 +13,8 @@ typedef bool touch_mv(struct ui_panel *, const int, const int, const int, const 
 typedef bool touch_up(struct ui_panel *, const int, const int, const uint32_t, const uint32_t, const uint32_t,
     const uint32_t);
 
-typedef bool key_dn(struct ui_panel *, const uint32_t);
-typedef bool key_up(struct ui_panel *, const uint32_t);
+typedef bool key_dn(struct ui_panel *, const uint32_t, const uint32_t);
+typedef bool key_up(struct ui_panel *, const uint32_t, const uint32_t);
 
 typedef uint32_t color_t;
 
@@ -23,6 +23,7 @@ typedef enum {
     PANEL_FRAME,
     PANEL_BUTTON,
     PANEL_LIST,
+    PANEL_LIST_ENTRY,
 
 
     PANEL_OTHER,
@@ -66,6 +67,10 @@ struct ui_panel {
 bool ui_root_touch_down(const int x, const int y, const uint32_t id, const uint32_t serial);
 bool ui_touch_move_root(const int x, const int y, const uint32_t id, const uint32_t serial);
 bool ui_touch_up_root(const uint32_t id, const uint32_t serial);
+
+bool ui_key_down_root(const uint32_t key, const uint32_t serial);
+bool ui_key_up_root(const uint32_t key, const uint32_t serial);
+
 
 bool ui_iter(struct ui_panel *panel);
 

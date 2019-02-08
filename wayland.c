@@ -213,6 +213,7 @@ struct wl_shell_surface *init_root_surface(void)
 }
 
 
+#if __arm__
 static void ivi_screen_cb(void *data, struct wl_interface *interface, uint32_t id, void *thing)
 {
     (void) data;
@@ -248,6 +249,7 @@ static void ivi_shell_create(void *data, struct wl_interface *interface, char *n
     // void *pointer = wl_ivi_pack_surface_id(name);
 }
 
+
 static void ivi_shell_destrory(void *data, struct wl_interface *ivi_interface, void *p, void *pp)
 {
     (void) data;
@@ -272,14 +274,16 @@ static const struct wl_ivi_listener ivi_listener = {
     .screen = ivi_screen_cb,
     .one = ivi_default,
 };
-
+#endif
 
 static void registry_global(void *data, struct wl_registry *registry, uint32_t id, const char *interface,
                             uint32_t version)
 {
+#if __arm__
     static struct wl_interface *ivi;
     static struct wl_interface *ivi_shell;
     // static struct wl_interface *ivi_animation_group;
+#endif
 
     (void) data;
     LOG_D("Got a registry event for %s id %d", interface, id);
@@ -297,6 +301,7 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t i
         LOG_D("  --  Setting Seat");
         seat = wl_registry_bind(registry, id, &wl_seat_interface, min(version, 2));
         wl_seat_add_listener(seat, &seat_listener, NULL);
+#if __arm__
     } else if (strcmp(interface, wl_ivi_shell_interface.name) == 0) {
         // wayland never met an inline function wrapper it didn't like.
         // TODO write my own ivi header that creates the inline wrapper func "just lime mom used to make"
@@ -311,6 +316,7 @@ static void registry_global(void *data, struct wl_registry *registry, uint32_t i
         ivi = wl_registry_bind(registry, id, &wl_ivi_interface, min(version, 1));
         wl_proxy_add_listener((struct wl_proxy *)ivi, (void (**)(void))&ivi_listener, NULL);
         LOG_D("  --  Setting IVI  %p", ivi);
+#endif
     }
     LOG_D("\n");
 }
@@ -323,8 +329,6 @@ static void registry_global_remove(void *data, struct wl_registry *reg, uint32_t
     (void) id;
     LOG_E("Registry_remover\n");
 }
-
-
 
 
 struct wl_display *init_wayland(void)
