@@ -11,14 +11,15 @@
 
 #include <stdlib.h>
 
-static struct ui_panel *ui_root_panel = NULL;
-
 #define XYWH_TO_CHILD() do {\
     l_x = panel->pos_x < 0 ? w + panel->pos_x : x + panel->pos_x; \
     l_y = panel->pos_y < 0 ? h + panel->pos_y : y + panel->pos_y; \
     l_w = panel->width <= 0 ? w + panel->width : l_x + panel->width; \
     l_h = panel->height <= 0 ? h + panel->height : l_y + panel->height; \
 } while (0)
+
+
+static struct ui_panel *ui_root_panel = NULL;
 
 
 bool ui_touch_down(struct ui_panel *panel, const int mx, const int my, const int x, const int y,
@@ -46,10 +47,12 @@ bool ui_touch_down(struct ui_panel *panel, const int mx, const int my, const int
     return false;
 }
 
+
 bool ui_root_touch_down(const int x, const int y, const uint32_t id, const uint32_t serial)
 {
     return ui_touch_down(ui_root_panel, x, y, 0, 0, ui_root_panel->width, ui_root_panel->height, id, serial);
 }
+
 
 bool ui_touch_up(struct ui_panel *panel, const int x, const int y, const uint32_t w,
     const uint32_t h, const uint32_t id, const uint32_t serial)
@@ -188,7 +191,6 @@ bool ui_iter(struct ui_panel *panel)
     hud_surface_commit();
 
     ui_panel_draw(panel, 0, 0, panel->width, panel->height);
-
 
     return draw;
 }

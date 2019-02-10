@@ -102,7 +102,7 @@ struct wl_shm_pool *init_memory_pool(void)
         return NULL;
     }
 
-    root_pool_data->capacity = HEIGHT * WIDTH * sizeof(uint32_t);
+    root_pool_data->capacity = HEIGHT * STRIDE;
     root_pool_data->size = 0;
     root_pool_data->fd = image;
 
