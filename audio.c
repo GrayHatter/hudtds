@@ -50,7 +50,6 @@ static int ov_endian = 0;  /* LE = 0, BE = 2 */
 
 static snd_pcm_t *pcm;
 
-static void play_filename(char *filename);
 
 static void init_pcm(void)
 {
@@ -69,91 +68,6 @@ static void init_pcm(void)
 
 
     return;
-}
-
-
-static AUDIO_MSG next_amsg_msg = 0;
-static void *next_amsg_data = NULL;
-
-void postmsg_audio(AUDIO_MSG msg, void *data)
-{
-    if (msg && next_amsg_msg) {
-        usleep(1000);
-    }
-    next_amsg_msg = msg;
-    next_amsg_data = data;
-    return;
-}
-
-
-static void *audio_thread(void *p)
-{
-    (void) p;
-    bool audio_playing = false;
-    AUDIO_MSG cur_msg = AMSG_NONE;
-    void *cur_data = NULL;
-
-    while (next_amsg_msg != AMSG_THREAD_EXIT) {
-        cur_msg = next_amsg_msg;
-        cur_data = next_amsg_data;
-        next_amsg_data = NULL;
-        next_amsg_msg = AMSG_NONE;
-
-        switch (cur_msg) {
-            case AMSG_THREAD_EXIT: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_THREAD_EXIT\n");
-                return NULL;
-            }
-            case AMSG_NONE: {
-                LOG_T("AMSG_THREAD UNHANDLED msg AMSG_NONE\n");
-                break;
-            }
-            case AMSG_PLAY: {
-                audio_playing = true;
-                play_filename(cur_data);
-                break;
-            }
-            case AMSG_PAUSE: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_PAUSE\n");
-                break;
-            }
-            case AMSG_PLAY_PAUSE: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_PLAY_PAUSE\n");
-                break;
-            }
-            case AMSG_STOP: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_STOP\n");
-                break;
-            }
-            case AMSG_CHANGE_TRACK: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_CHANGE_TRACK\n");
-                break;
-            }
-            case AMSG_SEEK_TO: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_SEEK_TO\n");
-                break;
-            }
-            case AMSG_PREV: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_PREV\n");
-                break;
-            }
-            case AMSG_RESTART: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_RESTART\n");
-                break;
-            }
-            case AMSG_NEXT: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_NEXT\n");
-                break;
-            }
-        }
-        if (audio_playing) {
-            usleep(100);
-        } else {
-            usleep(_10_MSECS);
-        }
-    }
-
-    return NULL;
 }
 
 
@@ -178,21 +92,19 @@ static int pcm_play(uint8_t *buffer, long count)
 }
 
 
-static void audio_init(void)
+static AUDIO_MSG next_amsg_msg = 0;
+static void *next_amsg_data = NULL;
+
+void postmsg_audio(AUDIO_MSG msg, void *data)
 {
-    LOG_T("init libav*\n");
-    LOG_I("libavcodec version %u %u %u u\n",
-      avcodec_version() >> 16,
-      avcodec_version() >> 8 & 0xff,
-      avcodec_version() & 0xff);
-
-    av_register_all();
-    avcodec_register_all();
-
-    LOG_T("init pcm\n");
-    init_pcm();
-
+    if (msg && next_amsg_msg) {
+        usleep(1000);
+    }
+    next_amsg_msg = msg;
+    next_amsg_data = data;
+    return;
 }
+
 
 static AVFormatContext *open_audio_file(char *filename, bool debug, int *stream_id)
 {
@@ -252,20 +164,30 @@ static AVCodecContext *init_codec(AVCodecContext *ctx, AVDictionary **metadata)
 }
 
 
+struct playback_data {
+    char *name;
+    bool running;
+    bool clean_exit;
+};
+
+
 #define AUDIO_BUF_SIZE 20480
-// #define AUDIO_REFILL_THRESH 4096
-static void play_filename(char *filename)
+static void *playback_thread(void *d)
 {
-    LOG_N("Playing %s\n", filename);
+    struct playback_data *data = d;
+
+    LOG_N("Playing %s\n", data->name);
     int stream_id = -1;
-    AVFormatContext *fcon = open_audio_file(filename, false, &stream_id);
+    AVFormatContext *fcon = open_audio_file(data->name, false, &stream_id);
     if (!fcon) {
-        return;
+        LOG_E("Could not open file\n");
+        return NULL;
     }
 
     AVCodecContext *c_ctx = init_codec(fcon->streams[stream_id]->codec, &fcon->metadata);
     if (!c_ctx) {
-        return;
+        LOG_E("Could not allocate init codec\n");
+        return NULL;
     }
 
     AVPacket avpkt;
@@ -279,11 +201,10 @@ static void play_filename(char *filename)
     AVFrame *avframe = avcodec_alloc_frame();
     if (!avframe) {
         LOG_E("Could not allocate audio frame\n");
-        return;
+        return NULL;
     }
 
     LOG_I("context data layout %lu %i %i %i \n", (long)c_ctx->channel_layout, c_ctx->channels, c_ctx->sample_rate, c_ctx->sample_fmt);
-
 
     struct SwrContext *swr = swr_alloc_set_opts(NULL,
         AV_CH_LAYOUT_STEREO, DEFAULT_SAMPLE_FMT, DEFAULT_SAMPLE_RATE,
@@ -291,7 +212,7 @@ static void play_filename(char *filename)
         0, NULL);
     if (!swr) {
         LOG_E("SWR alloc set opts failed\n;");
-        return;
+        return NULL;
     }
     swr_init(swr);
 
@@ -300,8 +221,11 @@ static void play_filename(char *filename)
     LOG_I("PCM is %i channel (%i), %iHz\n", DEFAULT_CHANNELS, AV_CH_LAYOUT_STEREO, DEFAULT_SAMPLE_RATE);
 
     LOG_T("Main decode loop\n");
+
+    data->running = true;
+
     uint8_t *output = malloc(AUDIO_BUF_SIZE * 4);
-    while (av_read_frame(fcon, &avpkt) >= 0) {
+    while (av_read_frame(fcon, &avpkt) >= 0 && data->running) {
         if (avpkt.stream_index == stream_id) {
             LOG_T("correct stream_id\n");
             int have_frame = 0;
@@ -340,7 +264,130 @@ static void play_filename(char *filename)
     avformat_free_context(fcon);
     avcodec_free_frame(&avframe);
 
-    return;
+    data->clean_exit = true;
+    return NULL;
+}
+
+
+static void *audio_thread(void *p)
+{
+    (void) p;
+
+    // thread state
+    AUDIO_MSG cur_msg = AMSG_NONE;
+    void *cur_data = NULL;
+
+    // Audio state
+    bool audio_playing = false;
+    struct playback_data *current_playback = NULL;
+
+
+    while (next_amsg_msg != AMSG_THREAD_EXIT) {
+        cur_msg = next_amsg_msg;
+        cur_data = next_amsg_data;
+        next_amsg_data = NULL;
+        next_amsg_msg = AMSG_NONE;
+
+        switch (cur_msg) {
+            case AMSG_THREAD_EXIT: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_THREAD_EXIT\n");
+                return NULL;
+            }
+            case AMSG_NONE: {
+                LOG_T("AMSG_THREAD UNHANDLED msg AMSG_NONE\n");
+                break;
+            }
+            case AMSG_PLAY: {
+                LOG_I("AMSG_THREAD Play\n");
+                if (audio_playing) {
+                    if (current_playback) {
+                        current_playback->running = false;
+                        while (!current_playback->clean_exit) {
+                            usleep(100);
+                        }
+
+                        free(current_playback->name);
+                        free(current_playback);
+                        current_playback = NULL;
+                    }
+                }
+
+                struct playback_data *d = calloc(1, sizeof (struct playback_data));
+                if (!d) {
+                    LOG_E("unable to calloc\n");
+                    break;
+                }
+                d->name = strdup(cur_data);
+
+                pthread_t new_thread;
+                if (pthread_create(&new_thread, NULL, playback_thread, d)) {
+                    LOG_E("Unable to create thread\n");
+                    break;
+                }
+
+                current_playback = d;
+                audio_playing = true;
+                break;
+            }
+
+            case AMSG_PAUSE: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_PAUSE\n");
+                break;
+            }
+            case AMSG_PLAY_PAUSE: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_PLAY_PAUSE\n");
+                break;
+            }
+            case AMSG_STOP: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_STOP\n");
+                break;
+            }
+            case AMSG_CHANGE_TRACK: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_CHANGE_TRACK\n");
+                break;
+            }
+            case AMSG_SEEK_TO: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_SEEK_TO\n");
+                break;
+            }
+            case AMSG_PREV: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_PREV\n");
+                break;
+            }
+            case AMSG_RESTART: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_RESTART\n");
+                break;
+            }
+            case AMSG_NEXT: {
+                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_NEXT\n");
+                break;
+            }
+        }
+        if (audio_playing) {
+            usleep(100);
+        } else {
+            usleep(_10_MSECS);
+        }
+    }
+
+    return NULL;
+}
+
+
+static void audio_init(void)
+{
+    LOG_T("init libav*\n");
+    LOG_I("libavcodec version %u %u %u u\n",
+      avcodec_version() >> 16,
+      avcodec_version() >> 8 & 0xff,
+      avcodec_version() & 0xff);
+
+    av_register_all();
+    avcodec_register_all();
+
+    LOG_T("init pcm\n");
+    init_pcm();
+
 }
 
 
