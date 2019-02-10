@@ -34,20 +34,12 @@
 #endif
 
 
-static char *device = "default";
-
 #define DEFAULT_CHANNELS    2
 #define DEFAULT_SAMPLE_FMT  AV_SAMPLE_FMT_S16
 #define DEFAULT_SAMPLE_RATE 48000
 
-
-static int resample = 1;
+static char *device = "default";
 static snd_pcm_format_t pcm_format = SND_PCM_FORMAT_S16;
-
-static int sample_word_size = 1;
-static int ov_signed = 0;
-static int ov_endian = 0;  /* LE = 0, BE = 2 */
-
 static snd_pcm_t *pcm;
 
 
@@ -397,57 +389,4 @@ void audio_thread_start(void)
 
     pthread_t t;
     pthread_create(&t, NULL, audio_thread, (void *)NULL);
-}
-
-
-void* hud_snd_play(void *p)
-{
-    (void) p;
-
-    init_pcm();
-    OggVorbis_File vf;
-    // FILE *f = fopen("test2.ogg", "r");
-    int err = ov_fopen("test2.ogg" , &vf);
-    if (err != 0) {
-        exit(10);
-    }
-
-    vorbis_info *vi = ov_info(&vf, -1);
-    LOG_E("Bitstream is %i channel, %ldHz\n", vi->channels, vi->rate);
-    LOG_E("Encoded by: %s\n\n", ov_comment(&vf, -1)->vendor);
-
-    int snd_err = snd_pcm_set_params(pcm, pcm_format, SND_PCM_ACCESS_RW_INTERLEAVED,
-        vi->channels, vi->rate, resample, vi->rate / 2);
-    if (snd_err < 0) {
-        LOG_E("Playback open error: %s\n", snd_strerror(snd_err));
-    }
-    LOG_E("expecting %f seconds of playback\n", ov_time_total(&vf, -1));
-
-    uint8_t *buffer = malloc(2000 * vi->channels * vi->rate);
-    if (!buffer) {
-        exit(9);
-    }
-
-    int bitstream;
-    long ov_size = 0;
-    snd_pcm_sframes_t available;
-    while (1) {
-        ov_size = ov_read(&vf, (char *)buffer, 1000 * vi->channels * vi->rate, ov_endian, sample_word_size, ov_signed, &bitstream);
-        available = snd_pcm_bytes_to_frames(pcm, ov_size);
-        if (available > 0) {
-            pcm_play(buffer, available);
-        } else if(ov_size < 0) {
-            LOG_E("error ret < 0\n");
-            /* error in the stream. */
-        } else {
-            LOG_E("error ret == 0\n");
-            break;
-       }
-    }
-
-    ov_clear(&vf);
-    free(buffer);
-
-    snd_pcm_close(pcm);
-    return NULL;
 }
