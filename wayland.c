@@ -9,7 +9,7 @@
 #include "wl/keyboard.h"
 #include "wl/touch.h"
 
-// #define _XOPEN_SOURCE 500
+#define __USE_XOPEN_EXTENDED
 
 #include <stdio.h>
 #include <stdlib.h>

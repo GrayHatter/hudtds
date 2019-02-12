@@ -5,7 +5,6 @@
 #define HEIGHT 480
 #define STRIDE WIDTH * 4
 
-
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 

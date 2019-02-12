@@ -1,5 +1,6 @@
 #include "audio.h"
 
+#include "audio_search.h"
 #include "hud.h"
 #include "log.h"
 
@@ -14,7 +15,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
-#include <vorbis/vorbisfile.h>
 
 #include <libavutil/common.h>
 #include <libavcodec/avcodec.h>
@@ -41,6 +41,10 @@
 static char *device = "default";
 static snd_pcm_format_t pcm_format = SND_PCM_FORMAT_S16;
 static snd_pcm_t *pcm;
+
+
+static struct music_dir *music_dir = NULL;
+static struct music_db *m_db = NULL;
 
 
 static void init_pcm(void)
@@ -260,7 +264,6 @@ static void *playback_thread(void *d)
     return NULL;
 }
 
-
 static void *audio_thread(void *p)
 {
     (void) p;
@@ -272,7 +275,6 @@ static void *audio_thread(void *p)
     // Audio state
     bool audio_playing = false;
     struct playback_data *current_playback = NULL;
-
 
     while (next_amsg_msg != AMSG_THREAD_EXIT) {
         cur_msg = next_amsg_msg;
@@ -354,6 +356,11 @@ static void *audio_thread(void *p)
                 LOG_E("AMSG_THREAD UNHANDLED msg AMSG_NEXT\n");
                 break;
             }
+            case AMSG_TRACK_SCAN_DONE: {
+                LOG_N("AMSG Track Scan done!\n");
+                m_db = cur_data;
+                break;
+            }
         }
         if (audio_playing) {
             usleep(100);
@@ -385,8 +392,15 @@ static void audio_init(void)
 
 void audio_thread_start(void)
 {
+    LOG_E("audio_thread_start\n");
+
     audio_init();
 
-    pthread_t t;
-    pthread_create(&t, NULL, audio_thread, (void *)NULL);
+    music_dir = calloc(1, sizeof (struct music_dir));
+    pthread_t ms;
+    pthread_create(&ms, NULL, find_files_thread, music_dir);
+
+    pthread_t a;
+    pthread_create(&a, NULL, audio_thread, (void *)NULL);
+
 }

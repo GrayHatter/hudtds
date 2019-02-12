@@ -1,7 +1,7 @@
 CC = arm-linux-gnueabihf-gcc
 LD = arm-linux-gnueabihf-ld
 
-OBJ = hud.o audio.o wayland.o info.o
+OBJ = hud.o audio.o audio_search.o wayland.o info.o
 OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o wl/text.o
 OBJ += gui/root.o gui/nav.o gui/music.o
 

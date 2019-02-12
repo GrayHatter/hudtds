@@ -11,6 +11,7 @@
 #include <stdlib.h>
 // #include <string.h>
 
+
 struct music_entry {
     struct ui_panel panel;
 
@@ -29,7 +30,6 @@ static void draw_music_frame(struct ui_panel *p, int32_t x, int32_t y, int32_t w
     (void) w;
     (void) h;
     // LOG_E("Draw music frame, %i %i %i %i\n", x, y, w, h);
-
 }
 
 

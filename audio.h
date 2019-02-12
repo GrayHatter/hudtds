@@ -13,6 +13,7 @@ typedef enum {
     AMSG_PREV,
     AMSG_RESTART,
     AMSG_NEXT,
+    AMSG_TRACK_SCAN_DONE,
 } AUDIO_MSG;
 
 

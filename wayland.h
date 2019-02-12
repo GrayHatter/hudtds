@@ -1,10 +1,6 @@
 #ifndef _WAYLANDTDS_H_
 #define _WAYLANDTDS_H_
 
-#define _POSIX_C_SOURCE 200112L
-#define _DEFAULT_SOURCE 1
-
-
 #include <stdint.h>
 
 #include <wayland-client.h>
