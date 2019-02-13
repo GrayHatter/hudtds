@@ -168,19 +168,14 @@ void draw_hline_c(int32_t x, int32_t y, int32_t w, uint32_t c)
 
 void draw_square_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 {
-
-
     if (CONSTRAIN_SIZE(x, y, 2) && CONSTRAIN_SIZE(w, h, 2) ) {
         LOG_E("draw_vline no\n");
         return;
     }
-
-    uint32_t *p = root_pool_data->memory + x + y * WIDTH;
-    for (int32_t draw_y = h - y; draw_y > 0; draw_y--) {
-        for (int32_t draw_x = w - x; draw_x > 0; draw_x--) {
-            *p++ = c;
+    for (int32_t draw_y = h; draw_y > y; draw_y--) {
+        for (int32_t draw_x = w; draw_x > x; draw_x--) {
+            P(draw_x, draw_y, c);
         }
-        p += WIDTH;
     }
 }
 

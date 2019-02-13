@@ -21,17 +21,6 @@ const char *supported_ext[] = {
 };
 
 
-static inline char *expand_dirname(const char *d, const char *f)
-{
-    size_t l = snprintf(NULL, 0, "%s/%s", d, f) + 1;
-    char *filename = malloc(l + 1);
-    if (filename) {
-        snprintf(filename, l, "%s/%s", d, f);
-    }
-    return filename;
-}
-
-
 static inline bool probably_music(char *filename)
 {
     for (unsigned int i = 0; i < 3; i++) {
@@ -79,7 +68,6 @@ struct music_dir *search_dir(char *dirname)
 {
     DIR *d = opendir(dirname);
     struct dirent *entry;
-    uint32_t total_tracks = 0;
 
     struct music_dir *thisdir = NULL;
 
@@ -102,22 +90,23 @@ struct music_dir *search_dir(char *dirname)
                     thisdir = ensure_dir(thisdir);
 
                     if (!thisdir->track_count) {
-                        thisdir->tracks = calloc(1, sizeof(struct music_track));
+                        thisdir->tracks = calloc(1, sizeof(struct audio_track));
                         if (!thisdir->tracks) {
                             LOG_E("can't alloc for tracks\n");
                             free(filename);
                             return NULL;
                         }
                     } else {
-                        struct music_track *next = realloc(thisdir->tracks, sizeof (struct music_track) * (thisdir->track_count + 1));
+                        struct audio_track *next = realloc(thisdir->tracks, sizeof (struct audio_track) * (thisdir->track_count + 1));
                         if (!next) {
                             free(filename);
                             return NULL;
                         }
                         thisdir->tracks = next;
                     }
-                    thisdir->tracks[thisdir->track_count++].filename = strdup(entry->d_name);
-                    total_tracks++;
+                    thisdir->tracks[thisdir->track_count].filename = strdup(entry->d_name);
+                    thisdir->tracks[thisdir->track_count++].dirname = strdup(dirname);
+                    thisdir->total_track_count++;
                 }
             } else if (S_ISDIR(s.st_mode)) {
                 LOG_T("desending %s\n", filename);
@@ -132,7 +121,7 @@ struct music_dir *search_dir(char *dirname)
                         }
                         thisdir->subdirs = next;
                         memcpy(&thisdir->subdirs[thisdir->dir_count++], child, sizeof (struct music_dir));
-                        thisdir->track_count += child->track_count;
+                        thisdir->total_track_count += child->total_track_count;
                         free(child);
                     }
                 }
@@ -156,6 +145,15 @@ void *find_files_thread(void *db_)
     LOG_E("Audio search starting up\n");
     struct music_db *db = db_;
 
+    struct stat s;
+    if (!stat("/tmp/mnt/sda1/music", &s)) {
+        if (!S_ISDIR(s.st_mode)) {
+            LOG_E("SDA music doesn't exist\n");
+            return NULL;
+        }
+    }
+
+
     db->dir_count = 1;
     db->dirs = search_dir("/tmp/mnt/sda1/music");
 
@@ -168,6 +166,7 @@ void *find_files_thread(void *db_)
     LOG_D("subdir track 0 location %s\n", expand_dirname(db->dirs[0].dirname, db->dirs[0].tracks[0].filename));
 
 
+    db->search_done = true;
     postmsg_audio(AMSG_TRACK_SCAN_DONE, db);
     return NULL;
 }

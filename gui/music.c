@@ -7,18 +7,60 @@
 
 #include "../log.h"
 #include "../audio.h"
+#include "../audio_search.h"
 
 #include <stdlib.h>
 // #include <string.h>
+
+static uint32_t cur_db_loc = 0;
+
+
+static struct audio_track *find_track(uint32_t pos, struct music_dir *dir)
+{
+    if (pos > dir->total_track_count) {
+        return NULL;
+    }
+
+    if (pos < dir->track_count) {
+        return &dir->tracks[pos];
+    }
+
+    pos -= dir->track_count;
+
+    for (uint32_t i = 0; i < dir->track_count; i++) {
+        struct audio_track *track = find_track(pos, &dir[i]);
+        if (track) {
+            return track;
+        }
+        pos -= dir[i].total_track_count;
+    }
+
+    LOG_E("Music track search can't happen\n");
+    return NULL;
+}
+
+
+static struct audio_track *track_pos_get(uint32_t pos)
+{
+    pos += cur_db_loc;
+    struct music_db *db = audio_db_get();
+    if (!db) {
+        return NULL;
+    }
+
+    struct music_dir *dir = db->dirs;
+    if (pos > dir->total_track_count) {
+        return NULL;
+    }
+
+    return find_track(pos, dir);
+}
 
 
 struct music_entry {
     struct ui_panel panel;
 
-    char *track_title;
-    char *track_artist;
-    char *track_album;
-    char *track_loc;
+    uint32_t position;
 };
 
 
@@ -33,15 +75,62 @@ static void draw_music_frame(struct ui_panel *p, int32_t x, int32_t y, int32_t w
 }
 
 
+static void draw_music_entry_main(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    x = p->pos_x < 0 ? w + p->pos_x : x + p->pos_x; \
+    y = p->pos_y < 0 ? h + p->pos_y : y + p->pos_y; \
+    w = p->width <= 0 ? w + p->width : x + p->width; \
+    h = p->height <= 0 ? h + p->height : y + p->height; \
+    draw_square_c(x, y, w, y + p->height, 0xff000000);
+
+    // LOG_E("Draw music entry (track: %s), %i %i %i %i (%i)\n", music->track_title, x, y, w, h, y + p->height);
+    if (p->focused) {
+        draw_box_c(x, y, w, y + p->height, p->color);
+        draw_box_c(x + 2, y + 2, w - 2, y + p->height - 2, p->color);
+    } else {
+        draw_box_c(x, y, w, y + p->height, 0xff000000);
+    }
+
+    struct audio_track *track = audio_track_get_current();
+    if (track) {
+        text_draw_string(track->filename, x + 3, y + 3);
+    } else {
+        text_draw_string("No Song Playing", x + 3, y + 3);
+    }
+}
+
+
+struct music_entry music_entry_main = {
+    .panel = {
+        .type = PANEL_LIST_ENTRY,
+        .name = "music entry_0",
+        .draw = draw_music_entry_main,
+        .pos_x = 80,
+        .pos_y = 0,
+        .height = 60,
+        .color = 0xffff0000,
+        .children = NULL,
+    },
+};
+
+
 static void draw_music_entry(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
 {
     x = p->pos_x < 0 ? w + p->pos_x : x + p->pos_x; \
     y = p->pos_y < 0 ? h + p->pos_y : y + p->pos_y; \
     w = p->width <= 0 ? w + p->width : x + p->width; \
     h = p->height <= 0 ? h + p->height : y + p->height; \
+    draw_square_c(x, y, w, y + p->height, 0xff000000);
 
-
+    char *name = NULL;
     struct music_entry *music = (struct music_entry *)p;
+    struct audio_track *track = track_pos_get(music->position);
+    if (track) {
+        name = track->filename;
+    } else {
+        name = "no track found";
+    }
+
     // LOG_E("Draw music entry (track: %s), %i %i %i %i (%i)\n", music->track_title, x, y, w, h, y + p->height);
     if (p->focused) {
         draw_box_c(x, y, w, y + p->height, p->color);
@@ -49,7 +138,7 @@ static void draw_music_entry(struct ui_panel *p, int32_t x, int32_t y, int32_t w
         draw_box_c(x, y, w, y + p->height, 0xff000000);
     }
 
-    text_draw_string(music->track_title, x + 3, y + 3);
+    text_draw_string(name, x + 3, y + 3);
 }
 
 
@@ -61,13 +150,10 @@ struct music_entry music_entry_0 = {
         .pos_x = 0,
         .pos_y = 0,
         .height = 40,
-        .color = 0xffff00ff,
+        .color = 0xffff0000,
         .children = NULL,
     },
-
-    .track_title = "test track 00",
-    .track_loc = "./black.mp3"
-
+    .position = 0
 };
 
 struct music_entry music_entry_1 = {
@@ -78,13 +164,10 @@ struct music_entry music_entry_1 = {
         .pos_x = 0,
         .pos_y = 40,
         .height = 40,
-        .color = 0xffff00ff,
+        .color = 0xffff0000,
         .children = NULL,
     },
-
-    .track_title = "test track 01",
-    .track_loc = "./dream.mp3"
-
+    .position = 1
 };
 
 struct music_entry music_entry_2 = {
@@ -95,13 +178,10 @@ struct music_entry music_entry_2 = {
         .pos_x = 0,
         .pos_y = 80,
         .height = 40,
-        .color = 0xffff00ff,
+        .color = 0xffff0000,
         .children = NULL,
     },
-
-    .track_title = "test track 02",
-    .track_loc = "./test.ogg"
-
+    .position = 2
 };
 
 struct music_entry music_entry_3 = {
@@ -112,13 +192,10 @@ struct music_entry music_entry_3 = {
         .pos_x = 0,
         .pos_y = 120,
         .height = 40,
-        .color = 0xffff00ff,
+        .color = 0xffff0000,
         .children = NULL,
     },
-
-    .track_title = "test track 03",
-    .track_loc = "./test2.ogg"
-
+    .position = 3
 };
 
 struct music_entry music_entry_4 = {
@@ -129,13 +206,10 @@ struct music_entry music_entry_4 = {
         .pos_x = 0,
         .pos_y = 160,
         .height = 40,
-        .color = 0xffff00ff,
+        .color = 0xffff0000,
         .children = NULL,
     },
-
-    .track_title = "test track 04",
-    .track_loc = "./black.mp3"
-
+    .position = 4
 };
 
 struct music_entry music_entry_5 = {
@@ -146,13 +220,10 @@ struct music_entry music_entry_5 = {
         .pos_x = 0,
         .pos_y = 200,
         .height = 40,
-        .color = 0xffff00ff,
+        .color = 0xffff0000,
         .children = NULL,
     },
-
-    .track_title = "test track 05",
-    .track_loc = "./dream.mp3"
-
+    .position = 5
 };
 
 struct music_entry music_entry_6 = {
@@ -163,31 +234,12 @@ struct music_entry music_entry_6 = {
         .pos_x = 0,
         .pos_y = 240,
         .height = 40,
-        .color = 0xffff00ff,
+        .color = 0xffff0000,
         .children = NULL,
     },
-
-    .track_title = "test track 06",
-    .track_loc = "./test.ogg"
-
+    .position = 6
 };
 
-struct music_entry music_entry_7 = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music entry_7",
-        .draw = draw_music_entry,
-        .pos_x = 0,
-        .pos_y = 280,
-        .height = 40,
-        .color = 0xffff00ff,
-        .children = NULL,
-    },
-
-    .track_title = "test track 07",
-    .track_loc = "./test2.ogg"
-
-};
 
 static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_t s)
 {
@@ -205,15 +257,19 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                 if (entry->panel.focused) {
                     found_focus = true;
                     switch (key) {
-                        case MZD_KEYMAP_ROTATE_LEFT:
-                        case MZD_KEYMAP_DPAD_UP: {
+                        case MZD_KEYMAP_DPAD_UP:
+                        case MZD_KEYMAP_ROTATE_LEFT: {
                             if (entry != first) {
+                                LOG_T("move to prev\n");
                                 prev->panel.focused = true;
                                 entry->panel.focused = false;
-                                LOG_T("move to prev\n");
+                                return true;
                             } else {
                                 LOG_D("already at beginning\n");
-                                return false;
+                                if (cur_db_loc) {
+                                    cur_db_loc--;
+                                    return true;
+                                }
                             }
                             break;
                         }
@@ -225,14 +281,17 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                                 entry->panel.focused = false;
                             } else {
                                 LOG_D("already at end\n");
-                                return false;
+                                cur_db_loc++;
+                                return true;
                             }
                             break;
                         }
                         case MZD_KEYMAP_DPAD_CENTER: {
-                            LOG_D("play this one %s (%s)\n", entry->track_title, entry->track_loc);
-                            if (entry->track_loc) {
-                                postmsg_audio(AMSG_PLAY, entry->track_loc);
+                            LOG_D("play this one %s\n", entry->panel.name);
+                            if (track_pos_get(entry->position)) {
+                                postmsg_audio(AMSG_PLAY, track_pos_get(entry->position));
+                            } else {
+                                LOG_E("No track found here %s\n", entry->panel.name);
                             }
                             break;
                         }
@@ -255,12 +314,91 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
     return false;
 }
 
-struct ui_panel music_frame = {
+
+
+static bool update_music_list(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
+    const uint32_t id, const uint32_t serial)
+{
+    (void) p;
+    (void) mx;
+    (void) my;
+    (void) x;
+    (void) y;
+    (void) w;
+    (void) h;
+    (void) id;
+    (void) serial;
+    LOG_E("Update Music List\n");
+    return true;
+}
+
+
+static void draw_button(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
+{
+    x = p->pos_x < 0 ? w + p->pos_x : x + p->pos_x;
+    y = p->pos_y < 0 ? h + p->pos_y : y + p->pos_y;
+    w = p->width <= 0 ? w + p->width : x + p->width;
+    h = p->height <= 0 ? h + p->height : y + p->height;
+
+    draw_square_c(x, y, w, h, p->color);
+}
+
+struct ui_panel music_btn_0 = {
+    .draw = draw_button,
+    .color = 0xffff0000,
+    .name = "music_btn_0",
+    .t_dn = update_music_list,
+    .pos_x = 0,
+    .pos_y = 0,
+    .width = 80,
+    .height = 80
+};
+
+struct ui_panel music_btn_1 = {
+    .draw = draw_button,
+    .color = 0xff00ff00,
+    .name = "music_btn_1",
+    .t_dn = update_music_list,
+    .pos_x = 0,
+    .pos_y = 80 * 1,
+    .width = 80,
+    .height = 80
+};
+
+struct ui_panel music_btn_2 = {
+    .draw = draw_button,
+    .color = 0xff0000ff,
+    .name = "music_btn_2",
+    .t_dn = update_music_list,
+    .pos_x = 0,
+    .pos_y = 80 * 2,
+    .width = 80,
+    .height = 80
+};
+
+struct ui_panel music_button_frame = {
     .type = PANEL_LIST,
-    .name = "music frame",
+    .name = "music entry frame",
     .draw = draw_music_frame,
-    .pos_x = 10,
-    .pos_y = 50,
+    .pos_x = 00,
+    .pos_y = 40,
+    .height = -80,
+    .k_dn = frame_key_down,
+    .focused = true,
+    .children = (struct ui_panel*[]) {
+        (struct ui_panel*)&music_btn_0,
+        (struct ui_panel*)&music_btn_1,
+        (struct ui_panel*)&music_btn_2,
+        NULL
+    }
+};
+
+struct ui_panel music_entry_frame = {
+    .type = PANEL_LIST,
+    .name = "music entry frame",
+    .draw = draw_music_frame,
+    .pos_x = 80,
+    .pos_y = 100,
     .height = -80,
     .k_dn = frame_key_down,
     .focused = true,
@@ -272,7 +410,23 @@ struct ui_panel music_frame = {
         (struct ui_panel*)&music_entry_4,
         (struct ui_panel*)&music_entry_5,
         (struct ui_panel*)&music_entry_6,
-        (struct ui_panel*)&music_entry_7,
+        NULL
+    }
+};
+
+struct ui_panel music_frame = {
+    .type = PANEL_LIST,
+    .name = "music frame",
+    .draw = draw_music_frame,
+    .pos_x = 0,
+    .pos_y = 40,
+    .height = -80,
+    .k_dn = frame_key_down,
+    .focused = true,
+    .children = (struct ui_panel*[]) {
+        (struct ui_panel*)&music_button_frame,
+        (struct ui_panel*)&music_entry_main,
+        (struct ui_panel*)&music_entry_frame,
         NULL
     }
 };

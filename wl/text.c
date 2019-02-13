@@ -21,8 +21,11 @@ void draw_char(FT_Bitmap *bm, uint32_t x, uint32_t y)
 
     for (int i = bm->rows; i > 0; i--) {
         for (int j = bm->width; j > 0; j--) {
-            d = 0x00000000 | (*g) << 16 | (*g) << 8 | *g;
-            *p++ = ~d;
+            if (*g) {
+                d = 0xff000000 | (*g) << 16 | (*g) << 8 | *g;
+                *p = d;
+            }
+            p++;
             g++;
         }
         p += WIDTH - bm->width;

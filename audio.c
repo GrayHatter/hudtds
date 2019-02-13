@@ -43,7 +43,8 @@ static snd_pcm_format_t pcm_format = SND_PCM_FORMAT_S16;
 static snd_pcm_t *pcm;
 
 
-static struct music_dir *music_dir = NULL;
+static struct audio_track *current_track = NULL;
+// static struct music_dir *music_dir = NULL;
 static struct music_db *m_db = NULL;
 
 
@@ -161,7 +162,7 @@ static AVCodecContext *init_codec(AVCodecContext *ctx, AVDictionary **metadata)
 
 
 struct playback_data {
-    char *name;
+    struct audio_track *track;
     bool running;
     bool clean_exit;
 };
@@ -172,17 +173,23 @@ static void *playback_thread(void *d)
 {
     struct playback_data *data = d;
 
-    LOG_N("Playing %s\n", data->name);
+    LOG_N("Playing %s\n", data->track->filename);
+    char *dirname  = expand_dirname(data->track->dirname, data->track->filename);
+    LOG_N("location %s\n", dirname);
+
     int stream_id = -1;
-    AVFormatContext *fcon = open_audio_file(data->name, false, &stream_id);
+    AVFormatContext *fcon = open_audio_file(dirname, false, &stream_id);
     if (!fcon) {
-        LOG_E("Could not open file\n");
+        data->clean_exit = true;
+        free(dirname);
         return NULL;
     }
 
     AVCodecContext *c_ctx = init_codec(fcon->streams[stream_id]->codec, &fcon->metadata);
     if (!c_ctx) {
         LOG_E("Could not allocate init codec\n");
+        data->clean_exit = true;
+        free(dirname);
         return NULL;
     }
 
@@ -197,6 +204,8 @@ static void *playback_thread(void *d)
     AVFrame *avframe = avcodec_alloc_frame();
     if (!avframe) {
         LOG_E("Could not allocate audio frame\n");
+        data->clean_exit = true;
+        free(dirname);
         return NULL;
     }
 
@@ -208,6 +217,8 @@ static void *playback_thread(void *d)
         0, NULL);
     if (!swr) {
         LOG_E("SWR alloc set opts failed\n;");
+        data->clean_exit = true;
+        free(dirname);
         return NULL;
     }
     swr_init(swr);
@@ -256,6 +267,7 @@ static void *playback_thread(void *d)
     LOG_E("files done\n");
 
     free(output);
+    free(dirname);
     avcodec_close(c_ctx);
     avformat_free_context(fcon);
     avcodec_free_frame(&avframe);
@@ -300,9 +312,9 @@ static void *audio_thread(void *p)
                             usleep(100);
                         }
 
-                        free(current_playback->name);
                         free(current_playback);
                         current_playback = NULL;
+                        current_track = NULL;
                     }
                 }
 
@@ -311,7 +323,8 @@ static void *audio_thread(void *p)
                     LOG_E("unable to calloc\n");
                     break;
                 }
-                d->name = strdup(cur_data);
+                d->track = cur_data;
+                current_track = cur_data;
 
                 pthread_t new_thread;
                 if (pthread_create(&new_thread, NULL, playback_thread, d)) {
@@ -386,9 +399,18 @@ static void audio_init(void)
 
     LOG_T("init pcm\n");
     init_pcm();
-
 }
 
+struct audio_track *audio_track_get_current(void)
+{
+    return current_track;
+}
+
+
+struct music_db *audio_db_get(void)
+{
+    return m_db;
+}
 
 void audio_thread_start(void)
 {
@@ -396,11 +418,10 @@ void audio_thread_start(void)
 
     audio_init();
 
-    music_dir = calloc(1, sizeof (struct music_dir));
+    struct music_db *music_db = calloc(1, sizeof (struct music_db));
     pthread_t ms;
-    pthread_create(&ms, NULL, find_files_thread, music_dir);
+    pthread_create(&ms, NULL, find_files_thread, music_db);
 
     pthread_t a;
     pthread_create(&a, NULL, audio_thread, (void *)NULL);
-
 }

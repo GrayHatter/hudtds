@@ -17,7 +17,7 @@ static void draw_root_frame(struct ui_panel *p, int32_t x, int32_t y, int32_t w,
     (void) w;
     (void) h;
 
-    text_draw_string("HudTds!", 30, 30);
+    text_draw_string("HudTds!", 2, 2);
 }
 
 

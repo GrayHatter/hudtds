@@ -112,7 +112,10 @@ struct wl_shm_pool *init_memory_pool(void)
         return NULL;
     }
 
-    memset(root_pool_data->memory, 0xff, HEIGHT * STRIDE);
+    uint32_t *p = root_pool_data->memory;
+    for (int i = 0; i < HEIGHT * WIDTH; i++) {
+        *p++ = 0xff000000;
+    }
 
     struct wl_shm_pool *pool = wl_shm_create_pool(shm, root_pool_data->fd, root_pool_data->capacity);
     if (pool == NULL) {

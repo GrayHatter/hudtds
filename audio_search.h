@@ -7,12 +7,6 @@
 
 extern const char *supported_ext[];
 
-struct music_track {
-    bool file_read;
-
-    char *filename;
-};
-
 struct music_dir {
     char *dirname;
 
@@ -20,16 +14,20 @@ struct music_dir {
     struct music_dir *subdirs;
 
     uint32_t track_count;
-    struct music_track *tracks;
+    struct audio_track *tracks;
+
+    uint32_t total_track_count;
 };
 
 struct music_db {
+    bool search_done;
+
     char *dir_name;
 
     uint32_t dir_count;
     struct music_dir *dirs;
 
-    uint32_t track_count;
+    uint32_t total_track_count;
 };
 
 
