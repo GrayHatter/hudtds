@@ -47,6 +47,7 @@ struct ui_panel {
     void (*draw)(struct ui_panel *, int32_t, int32_t, int32_t, int32_t);
 
     bool focused;
+    bool touch_focus;
     int32_t pos_x;
     int32_t pos_y;
     int32_t width;

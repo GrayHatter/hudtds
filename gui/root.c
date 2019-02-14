@@ -1,7 +1,8 @@
 #include "root.h"
 
-#include "nav.h"
+#include "notifier.h"
 #include "music.h"
+#include "nav.h"
 
 #include "../wl/ui.h"
 #include "../wl/text.h"
@@ -38,6 +39,7 @@ struct ui_panel root_panel = {
     .name = "root frame",
 
     .children = (struct ui_panel*[]){
+        &notifier,
         &main_frame,
         &nav_frame,
         NULL,

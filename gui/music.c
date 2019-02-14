@@ -75,13 +75,13 @@ static void draw_music_frame(struct ui_panel *p, int32_t x, int32_t y, int32_t w
 }
 
 
-static void draw_music_entry_main(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
+static void draw_music_playing(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
 {
     x = p->pos_x < 0 ? w + p->pos_x : x + p->pos_x; \
     y = p->pos_y < 0 ? h + p->pos_y : y + p->pos_y; \
     w = p->width <= 0 ? w + p->width : x + p->width; \
     h = p->height <= 0 ? h + p->height : y + p->height; \
-    draw_square_c(x, y, w, y + p->height, 0xff000000);
+    draw_square_c(x, y, w, y + p->height, 0xff333333);
 
     // LOG_E("Draw music entry (track: %s), %i %i %i %i (%i)\n", music->track_title, x, y, w, h, y + p->height);
     if (p->focused) {
@@ -100,16 +100,16 @@ static void draw_music_entry_main(struct ui_panel *p, int32_t x, int32_t y, int3
 }
 
 
-struct music_entry music_entry_main = {
+struct music_entry music_entry_playing = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
-        .name = "music entry_0",
-        .draw = draw_music_entry_main,
+        .name = "music entry playing",
+        .draw = draw_music_playing,
         .pos_x = 80,
         .pos_y = 0,
         .height = 60,
         .color = 0xffff0000,
-        .children = NULL,
+        .touch_focus = true,
     },
 };
 
@@ -241,76 +241,90 @@ struct music_entry music_entry_6 = {
 };
 
 
+struct ui_panel music_entry_frame;
+
+
+static bool frame_key_down_main(struct ui_panel *p, const uint32_t key, const uint32_t s)
+{
+    (void) p;
+    (void) s;
+
+    switch (key) {
+        case MZD_KEYMAP_DPAD_UP: {
+            music_entry_playing.panel.focused = true;
+            music_entry_frame.focused = false;
+            return true;
+        }
+        case MZD_KEYMAP_DPAD_DOWN: {
+            music_entry_playing.panel.focused = false;
+            music_entry_frame.focused = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+
 static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_t s)
 {
     (void) s;
     struct music_entry **children = (struct music_entry**)p->children;
-    if (key == MZD_KEYMAP_ROTATE_LEFT
-            || key == MZD_KEYMAP_ROTATE_RIGHT
-            || key == MZD_KEYMAP_DPAD_DOWN
-            || key == MZD_KEYMAP_DPAD_UP
-            || key == MZD_KEYMAP_DPAD_CENTER) {
-        if (children) {
-            bool found_focus = false;
-            struct music_entry *first = *children, *entry, *prev;
-            while ((entry = *children++)) {
-                if (entry->panel.focused) {
-                    found_focus = true;
-                    switch (key) {
-                        case MZD_KEYMAP_DPAD_UP:
-                        case MZD_KEYMAP_ROTATE_LEFT: {
-                            if (entry != first) {
-                                LOG_T("move to prev\n");
-                                prev->panel.focused = true;
-                                entry->panel.focused = false;
-                                return true;
-                            } else {
-                                LOG_D("already at beginning\n");
-                                if (cur_db_loc) {
-                                    cur_db_loc--;
-                                    return true;
-                                }
-                            }
-                            break;
-                        }
-                        case MZD_KEYMAP_ROTATE_RIGHT:
-                        case MZD_KEYMAP_DPAD_DOWN: {
-                            if (*children) {
-                                LOG_T("move to next %s\n", (*children)->panel.name);
-                                (*children)->panel.focused = true;
-                                entry->panel.focused = false;
-                            } else {
-                                LOG_D("already at end\n");
-                                cur_db_loc++;
-                                return true;
-                            }
-                            break;
-                        }
-                        case MZD_KEYMAP_DPAD_CENTER: {
-                            LOG_D("play this one %s\n", entry->panel.name);
-                            if (track_pos_get(entry->position)) {
-                                postmsg_audio(AMSG_PLAY, track_pos_get(entry->position));
-                            } else {
-                                LOG_E("No track found here %s\n", entry->panel.name);
-                            }
-                            break;
-                        }
-                        default: {
-                            LOG_T("frame_key_down default case, can't happen!\n");
-                            return false;
+
+    if (!children) {
+        return false;
+    }
+    struct music_entry *first = *children, *entry, *prev;
+
+    while ((entry = *children++)) {
+        if (entry->panel.focused) {
+            switch (key) {
+                case MZD_KEYMAP_ROTATE_LEFT: {
+                    if (entry != first) {
+                        LOG_T("move to prev\n");
+                        prev->panel.focused = true;
+                        entry->panel.focused = false;
+                    } else {
+                        LOG_D("already at beginning\n");
+                        if (cur_db_loc) {
+                            cur_db_loc--;
                         }
                     }
                     return true;
                 }
-
-                prev = entry;
+                case MZD_KEYMAP_ROTATE_RIGHT: {
+                    if (*children) {
+                        LOG_T("move to next %s\n", (*children)->panel.name);
+                        (*children)->panel.focused = true;
+                        entry->panel.focused = false;
+                    } else {
+                        LOG_D("already at end\n");
+                        cur_db_loc++;
+                    }
+                    return true;
+                }
+                case MZD_KEYMAP_DPAD_CENTER: {
+                    LOG_D("play this one %s\n", entry->panel.name);
+                    if (track_pos_get(entry->position)) {
+                        postmsg_audio(AMSG_PLAY, track_pos_get(entry->position));
+                    } else {
+                        LOG_E("No track found here %s\n", entry->panel.name);
+                    }
+                    break;
+                    return true;
+                }
+                default: {
+                    LOG_D("frame_key_down default case\n");
+                    return false;
+                }
             }
-            if (!found_focus) {
-                LOG_D("focus not found\n");
-                first->panel.focused = true;
-            }
+            return true;
         }
+
+        prev = entry;
     }
+
+    LOG_D("focus not found\n");
+    first->panel.focused = true;
     return false;
 }
 
@@ -345,8 +359,8 @@ static void draw_button(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int
 
 struct ui_panel music_btn_0 = {
     .draw = draw_button,
-    .color = 0xffff0000,
     .name = "music_btn_0",
+    .color = 0xff0000ff,
     .t_dn = update_music_list,
     .pos_x = 0,
     .pos_y = 0,
@@ -367,11 +381,22 @@ struct ui_panel music_btn_1 = {
 
 struct ui_panel music_btn_2 = {
     .draw = draw_button,
-    .color = 0xff0000ff,
     .name = "music_btn_2",
+    .color = 0xffff0000,
     .t_dn = update_music_list,
     .pos_x = 0,
     .pos_y = 80 * 2,
+    .width = 80,
+    .height = 80
+};
+
+struct ui_panel music_btn_3 = {
+    .draw = draw_button,
+    .name = "music_btn_3",
+    .color = 0xffff00ff,
+    .t_dn = update_music_list,
+    .pos_x = 0,
+    .pos_y = 80 * 3,
     .width = 80,
     .height = 80
 };
@@ -380,15 +405,17 @@ struct ui_panel music_button_frame = {
     .type = PANEL_LIST,
     .name = "music entry frame",
     .draw = draw_music_frame,
-    .pos_x = 00,
-    .pos_y = 40,
+    .pos_x = 0,
+    .pos_y = 0,
     .height = -80,
     .k_dn = frame_key_down,
-    .focused = true,
+    .focused = false,
+    .touch_focus = false,
     .children = (struct ui_panel*[]) {
         (struct ui_panel*)&music_btn_0,
         (struct ui_panel*)&music_btn_1,
         (struct ui_panel*)&music_btn_2,
+        (struct ui_panel*)&music_btn_3,
         NULL
     }
 };
@@ -398,10 +425,10 @@ struct ui_panel music_entry_frame = {
     .name = "music entry frame",
     .draw = draw_music_frame,
     .pos_x = 80,
-    .pos_y = 100,
+    .pos_y = 60,
     .height = -80,
     .k_dn = frame_key_down,
-    .focused = true,
+    .focused = false,
     .children = (struct ui_panel*[]) {
         (struct ui_panel*)&music_entry_0,
         (struct ui_panel*)&music_entry_1,
@@ -421,11 +448,11 @@ struct ui_panel music_frame = {
     .pos_x = 0,
     .pos_y = 40,
     .height = -80,
-    .k_dn = frame_key_down,
+    .k_dn = frame_key_down_main,
     .focused = true,
     .children = (struct ui_panel*[]) {
         (struct ui_panel*)&music_button_frame,
-        (struct ui_panel*)&music_entry_main,
+        (struct ui_panel*)&music_entry_playing,
         (struct ui_panel*)&music_entry_frame,
         NULL
     }

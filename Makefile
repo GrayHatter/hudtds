@@ -3,7 +3,8 @@ LD = arm-linux-gnueabihf-ld
 
 OBJ = hud.o audio.o audio_search.o wayland.o info.o
 OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o wl/text.o
-OBJ += gui/root.o gui/nav.o gui/music.o
+OBJ += gui/root.o gui/nav.o gui/music.o gui/notifier.o
+
 
 CFLAGS := -Wall -Wextra -Werror $(CFLAGS)
 CFLAGS += -Wno-sign-compare
@@ -51,6 +52,9 @@ install-audio:
 	cp test2.ogg /home/grayhatter/mazda/live/tmp/root/
 
 install-all: install-audio install
+
+install-root: hudtds
+	cp hudtds /home/grayhatter/mazda/live/jci/scripts/
 
 clean:
 	rm $(OBJ) || true
