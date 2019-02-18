@@ -29,31 +29,13 @@ int main(void)
     }
 
     LOG_D("Main startup\n");
-    struct wl_buffer *buffer;
-    struct wl_shm_pool *pool;
-    struct wl_shell_surface *surface;
+
 
     init_wayland();
     LOG_D("wl init done\n");
 
-    // get_info();
-
-    pool = init_memory_pool();
-    LOG_T("Pool done\n");
-
-    surface = init_root_surface();
-    LOG_T("surface done\n");
-
-    buffer = init_buffer(pool, WIDTH, HEIGHT);
-    LOG_T("buffer done\n");
-
-    bind_buffer(buffer, surface);
-    LOG_T("bind done\n");
-
+    LOG_D("Starting Audio Thread\n");
     audio_thread_start();
-
-    //init_cursor(pool, CURSOR_WIDTH, CURSOR_HEIGHT, CURSOR_HOT_SPOT_X, CURSOR_HOT_SPOT_Y);
-    // LOG_N("cursor done\n");
 
     while (!done) {
         if (do_wayland() < 0) {
@@ -63,10 +45,6 @@ int main(void)
     }
 
     LOG_E("Exiting HUDTDS...\n");
-
-    raze_buffer(buffer);
-    raze_surface(surface);
-    raze_memory_pool(pool);
 
     raze_wayland();
 

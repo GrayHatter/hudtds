@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <wayland-client.h>
+
 
 struct wl_keyboard *keyboard;
 

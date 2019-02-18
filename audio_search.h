@@ -19,6 +19,7 @@ struct music_dir {
     uint32_t total_track_count;
 };
 
+
 struct music_db {
     bool search_done;
 

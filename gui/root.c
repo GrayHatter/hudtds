@@ -3,6 +3,7 @@
 #include "notifier.h"
 #include "music.h"
 #include "nav.h"
+// #include "onscreenkeys.h"
 
 #include "../wl/ui.h"
 #include "../wl/text.h"

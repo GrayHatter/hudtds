@@ -8,6 +8,7 @@
 #include "../log.h"
 
 #include <stdio.h>
+#include <wayland-client.h>
 
 static struct wl_touch *touch;
 
@@ -49,10 +50,8 @@ static void touch_down(void *data, struct wl_touch *wl_touch, uint32_t serial, u
 {
     (void) data;
     (void) wl_touch;
-    (void) serial;
     (void) time;
     (void) surface;
-
 
     int x = wl_fixed_to_int(f_x);
     int y = wl_fixed_to_int(f_y);

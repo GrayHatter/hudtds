@@ -1,5 +1,7 @@
 #include "nav.h"
 
+#include "onscreenkeys.h"
+
 #include "../wl/ui.h"
 #include "../wl/draw.h"
 
@@ -22,64 +24,6 @@ static bool touch_test_1(struct ui_panel *p, const int mx, const int my, const i
     (void) id;
     (void) serial;
     LOG_W("touch test 1\n");
-
-    return true;
-}
-
-
-static bool touch_play_1(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
-    const uint32_t id, const uint32_t serial)
-{
-    (void) p;
-    (void) mx;
-    (void) my;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    (void) id;
-    (void) serial;
-    char *name = malloc(sizeof "./black.mp3");
-    memcpy(name, "./black.mp3", sizeof "./black.mp3");
-    postmsg_audio(AMSG_PLAY, name);
-
-    return true;
-}
-
-static bool touch_play_2(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
-    const uint32_t id, const uint32_t serial)
-{
-    (void) p;
-    (void) mx;
-    (void) my;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    (void) id;
-    (void) serial;
-
-    char *name = malloc(sizeof "./dream.mp3");
-    memcpy(name, "./dream.mp3", sizeof "./dream.mp3");
-    postmsg_audio(AMSG_PLAY, name);
-
-    return true;
-}
-
-static bool touch_exit(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
-    const uint32_t id, const uint32_t serial)
-{
-    (void) p;
-    (void) mx;
-    (void) my;
-    (void) x;
-    (void) y;
-    (void) w;
-    (void) h;
-    (void) id;
-    (void) serial;
-    LOG_W("touch exit\n");
-    exit(0);
 
     return true;
 }
@@ -179,23 +123,63 @@ struct ui_panel nav_btn_7 = {
     .draw = draw_button,
     .color = 0xffff8888,
     .name = "nav_btn_7",
-    .t_dn = touch_play_1,
     .pos_x = NAV_BTW_W * 7,
     .pos_y = 0,
     .width = NAV_BTW_W,
     .height = NAV_BTW_H
 };
 
-struct ui_panel nav_btn_8 = {
+
+
+static bool tgl_keys(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
+    const uint32_t id, const uint32_t serial)
+{
+    (void) p;
+    (void) mx;
+    (void) my;
+    (void) x;
+    (void) y;
+    (void) w;
+    (void) h;
+    (void) id;
+    (void) serial;
+
+    onscreenkey_frame.disabled = !onscreenkey_frame.disabled;
+
+    return true;
+}
+
+
+static struct ui_panel nav_btn_8 = {
     .draw = draw_button,
     .color = 0xff8888ff,
     .name = "nav_btn_8",
-    .t_dn = touch_play_2,
+    .t_dn = tgl_keys,
     .pos_x = NAV_BTW_W * 8,
     .pos_y = 0,
     .width = NAV_BTW_W,
     .height = NAV_BTW_H
 };
+
+
+static bool touch_exit(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
+    const uint32_t id, const uint32_t serial)
+{
+    (void) p;
+    (void) mx;
+    (void) my;
+    (void) x;
+    (void) y;
+    (void) w;
+    (void) h;
+    (void) id;
+    (void) serial;
+    LOG_W("touch exit\n");
+    exit(0);
+
+    return true;
+}
+
 
 struct ui_panel nav_btn_9 = {
     .draw = draw_button,

@@ -48,6 +48,8 @@ struct ui_panel {
 
     bool focused;
     bool touch_focus;
+    bool disabled;
+
     int32_t pos_x;
     int32_t pos_y;
     int32_t width;
@@ -59,6 +61,9 @@ struct ui_panel {
     // TODO, I think I want to remove color
     color_t color;
 
+    // Children should be listed in order of priority. Higher priority children should be listed
+    // first, followed by lower. Then ascending x position (frame top to bottom), finally left to
+    // right.
     struct ui_panel **children;
 };
 

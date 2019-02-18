@@ -2,8 +2,8 @@ CC = arm-linux-gnueabihf-gcc
 LD = arm-linux-gnueabihf-ld
 
 OBJ = hud.o audio.o audio_search.o wayland.o info.o
-OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o wl/text.o
-OBJ += gui/root.o gui/nav.o gui/music.o gui/notifier.o
+OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o wl/text.o wl/ivi.o wl/seat.o
+OBJ += gui/root.o gui/nav.o gui/music.o gui/notifier.o gui/onscreenkeys.o
 
 
 CFLAGS := -Wall -Wextra -Werror $(CFLAGS)
@@ -45,13 +45,8 @@ install: hudtds
 	cp hudtds /home/grayhatter/mazda/live/tmp/root/
 	cp SCP.otf /home/grayhatter/mazda/live/tmp/root/
 
-install-audio:
-	cp black.mp3 /home/grayhatter/mazda/live/tmp/root/
-	cp dream.mp3 /home/grayhatter/mazda/live/tmp/root/
-	cp test.ogg /home/grayhatter/mazda/live/tmp/root/
-	cp test2.ogg /home/grayhatter/mazda/live/tmp/root/
 
-install-all: install-audio install
+install-all: install
 
 install-root: hudtds
 	cp hudtds /home/grayhatter/mazda/live/jci/scripts/

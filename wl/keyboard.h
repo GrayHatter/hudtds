@@ -2,7 +2,8 @@
 #define _HUD_KB_H_
 
 #include <stdbool.h>
-#include <wayland-client-protocol.h>
+
+struct wl_seat;
 
 bool hud_kb_init(struct wl_seat *seat);
 

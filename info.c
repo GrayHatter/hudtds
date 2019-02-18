@@ -94,19 +94,15 @@ struct weston_info {
 
 char *strdup(const char*);
 
-static void
-print_global_info(void *data)
+static void print_global_info(void *data)
 {
     struct global_info *global = data;
 
-    printf("interface: '%s', version: %u, name: %u\n",
-           global->interface, global->version, global->id);
+    printf("interface: '%s', version: %u, name: %u\n", global->interface, global->version, global->id);
 }
 
-static void
-init_global_info(struct weston_info *info,
-         struct global_info *global, uint32_t id,
-         const char *interface, uint32_t version)
+static void init_global_info(struct weston_info *info, struct global_info *global, uint32_t id, const char *interface,
+    uint32_t version)
 {
     global->id = id;
     global->version = version;
@@ -115,8 +111,7 @@ init_global_info(struct weston_info *info,
     wl_list_insert(info->infos.prev, &global->link);
 }
 
-static void
-print_output_info(void *data)
+static void print_output_info(void *data)
 {
     struct output_info *output = data;
     struct output_mode *mode;
@@ -145,8 +140,7 @@ print_output_info(void *data)
         subpixel_orientation = "vertical bgr";
         break;
     default:
-        fprintf(stderr, "unknown subpixel orientation %u\n",
-            output->geometry.subpixel);
+        fprintf(stderr, "unknown subpixel orientation %u\n", output->geometry.subpixel);
         subpixel_orientation = "unexpected value";
         break;
     }
@@ -177,40 +171,39 @@ print_output_info(void *data)
         transform = "flipped 270°";
         break;
     default:
-        fprintf(stderr, "unknown output transform %u\n",
-            output->geometry.output_transform);
+        fprintf(stderr, "unknown output transform %u\n", output->geometry.output_transform);
         transform = "unexpected value";
         break;
     }
 
-    printf("\tx: %d, y: %d,\n",
-           output->geometry.x, output->geometry.y);
-    printf("\tphysical_width: %d mm, physical_height: %d mm,\n",
-           output->geometry.physical_width,
+    printf("\tx: %d, y: %d,\n", output->geometry.x, output->geometry.y);
+
+    printf("\tphysical_width: %d mm, physical_height: %d mm,\n", output->geometry.physical_width,
            output->geometry.physical_height);
-    printf("\tmake: '%s', model: '%s',\n",
-           output->geometry.make, output->geometry.model);
-    printf("\tsubpixel_orientation: %s, output_tranform: %s,\n",
-           subpixel_orientation, transform);
+
+    printf("\tmake: '%s', model: '%s',\n", output->geometry.make, output->geometry.model);
+    printf("\tsubpixel_orientation: %s, output_tranform: %s,\n", subpixel_orientation, transform);
 
     wl_list_for_each(mode, &output->modes, link) {
         printf("\tmode:\n");
 
-        printf("\t\twidth: %d px, height: %d px, refresh: %.f Hz,\n",
-               mode->width, mode->height,
-               (float) mode->refresh / 1000);
+        printf("\t\twidth: %d px, height: %d px, refresh: %.f Hz,\n", mode->width, mode->height,
+            (float) mode->refresh / 1000);
 
         printf("\t\tflags:");
-        if (mode->flags & WL_OUTPUT_MODE_CURRENT)
+        if (mode->flags & WL_OUTPUT_MODE_CURRENT) {
             printf(" current");
-        if (mode->flags & WL_OUTPUT_MODE_PREFERRED)
+        }
+
+        if (mode->flags & WL_OUTPUT_MODE_PREFERRED) {
             printf(" preferred");
+        }
+
         printf("\n");
     }
 }
 
-static void
-print_shm_info(void *data)
+static void print_shm_info(void *data)
 {
     struct shm_info *shm = data;
     struct shm_format *format;
@@ -226,8 +219,7 @@ print_shm_info(void *data)
     printf("\n");
 }
 
-static void
-print_seat_info(void *data)
+static void print_seat_info(void *data)
 {
     struct seat_info *seat = data;
 
@@ -245,9 +237,7 @@ print_seat_info(void *data)
     printf("\n");
 }
 
-static void
-seat_handle_capabilities(void *data, struct wl_seat *wl_seat,
-             enum wl_seat_capability caps)
+static void seat_handle_capabilities(void *data, struct wl_seat *wl_seat, enum wl_seat_capability caps)
 {
     (void) wl_seat;
     struct seat_info *seat = data;
@@ -258,23 +248,20 @@ static const struct wl_seat_listener seat_listener = {
     .capabilities = seat_handle_capabilities,
 };
 
-static void
-add_seat_info(struct weston_info *info, uint32_t id, uint32_t version)
+static void add_seat_info(struct weston_info *info, uint32_t id, uint32_t version)
 {
     struct seat_info *seat = malloc(sizeof *seat);
 
     init_global_info(info, &seat->global, id, "wl_seat", version);
     seat->global.print = print_seat_info;
 
-    seat->seat = wl_registry_bind(info->registry,
-                      id, &wl_seat_interface, 1);
+    seat->seat = wl_registry_bind(info->registry, id, &wl_seat_interface, 1);
     wl_seat_add_listener(seat->seat, &seat_listener, seat);
 
     info->roundtrip_needed = true;
 }
 
-static void
-shm_handle_format(void *data, struct wl_shm *wl_shm, uint32_t format)
+static void shm_handle_format(void *data, struct wl_shm *wl_shm, uint32_t format)
 {
     (void) wl_shm;
     struct shm_info *shm = data;
@@ -288,8 +275,7 @@ static const struct wl_shm_listener shm_listener = {
     shm_handle_format,
 };
 
-static void
-add_shm_info(struct weston_info *info, uint32_t id, uint32_t version)
+static void add_shm_info(struct weston_info *info, uint32_t id, uint32_t version)
 {
     struct shm_info *shm = malloc(sizeof *shm);
 
@@ -304,13 +290,9 @@ add_shm_info(struct weston_info *info, uint32_t id, uint32_t version)
     info->roundtrip_needed = true;
 }
 
-static void
-output_handle_geometry(void *data, struct wl_output *wl_output,
-               int32_t x, int32_t y,
-               int32_t physical_width, int32_t physical_height,
-               int32_t subpixel,
-               const char *make, const char *model,
-               int32_t output_transform)
+static void output_handle_geometry(void *data, struct wl_output *wl_output, int32_t x, int32_t y,
+    int32_t physical_width, int32_t physical_height, int32_t subpixel, const char *make, const char *model,
+    int32_t output_transform)
 {
     (void) wl_output;
     struct output_info *output = data;
@@ -325,10 +307,8 @@ output_handle_geometry(void *data, struct wl_output *wl_output,
     output->geometry.output_transform = output_transform;
 }
 
-static void
-output_handle_mode(void *data, struct wl_output *wl_output,
-           uint32_t flags, int32_t width, int32_t height,
-           int32_t refresh)
+static void output_handle_mode(void *data, struct wl_output *wl_output, uint32_t flags, int32_t width, int32_t height,
+    int32_t refresh)
 {
     (void) wl_output;
 
@@ -348,8 +328,7 @@ static const struct wl_output_listener output_listener = {
     .mode = output_handle_mode,
 };
 
-static void
-add_output_info(struct weston_info *info, uint32_t id, uint32_t version)
+static void add_output_info(struct weston_info *info, uint32_t id, uint32_t version)
 {
     struct output_info *output = malloc(sizeof *output);
 
@@ -366,8 +345,7 @@ add_output_info(struct weston_info *info, uint32_t id, uint32_t version)
     info->roundtrip_needed = true;
 }
 
-static void
-add_global_info(struct weston_info *info, uint32_t id,
+static void add_global_info(struct weston_info *info, uint32_t id,
         const char *interface, uint32_t version)
 {
     struct global_info *global = malloc(sizeof *global);
@@ -376,26 +354,25 @@ add_global_info(struct weston_info *info, uint32_t id,
     global->print = print_global_info;
 }
 
-static void
-global_handler(void *data, struct wl_registry *registry, uint32_t id,
+static void global_handler(void *data, struct wl_registry *registry, uint32_t id,
            const char *interface, uint32_t version)
 {
     (void) registry;
 
     struct weston_info *info = data;
 
-    if (!strcmp(interface, "wl_seat"))
+    if (!strcmp(interface, "wl_seat")) {
         add_seat_info(info, id, version);
-    else if (!strcmp(interface, "wl_shm"))
+    } else if (!strcmp(interface, "wl_shm")) {
         add_shm_info(info, id, version);
-    else if (!strcmp(interface, "wl_output"))
+    } else if (!strcmp(interface, "wl_output")) {
         add_output_info(info, id, version);
-    else
+    } else {
         add_global_info(info, id, interface, version);
+    }
 }
 
-static void
-global_remove_handler(void *data, struct wl_registry *registry, uint32_t name)
+static void global_remove_handler(void *data, struct wl_registry *registry, uint32_t name)
 {
     (void) data;
     (void) registry;
@@ -407,8 +384,7 @@ static const struct wl_registry_listener registry_listener = {
     global_remove_handler
 };
 
-static void
-print_infos(struct wl_list *infos)
+static void print_infos(struct wl_list *infos)
 {
     struct global_info *info;
 
@@ -416,8 +392,7 @@ print_infos(struct wl_list *infos)
         info->print(info);
 }
 
-int
-get_info()
+int get_info()
 {
     struct weston_info info;
 

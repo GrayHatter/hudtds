@@ -34,6 +34,10 @@ bool ui_touch_down(struct ui_panel *panel, const int mx, const int my, const int
     if (children) {
         struct ui_panel *p;
         while ((p = *children++)) {
+            if (p->disabled) {
+                continue;
+            }
+
             if (ui_touch_down(p, mx, my, l_x, l_y, l_w, l_h, id, serial)) {
                 return true;
             }
@@ -65,6 +69,10 @@ bool ui_touch_up(struct ui_panel *panel, const int x, const int y, const uint32_
     if (children) {
         struct ui_panel *p;
         while ((p = *children++)) {
+            if (p->disabled) {
+                continue;
+            }
+
             ui_touch_up(p, x, y, w, h, id, serial);
         }
     }
@@ -150,49 +158,46 @@ bool ui_key_up_root(const uint32_t key, const uint32_t serial)
 }
 
 
-void ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int32_t h)
+bool ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int32_t h)
 {
+    bool redraw = panel->draw_needed;
+    panel->draw_needed = false;
     LOG_D("ui panel draw %p\n", panel);
     if (panel->draw) {
         panel->draw(panel, x, y, w, h);
-    } else if (panel->color) {
-        // hack to avoid boxing the ui_root_panel
-        int32_t l_x = x, l_y = y, l_w = w, l_h = h;
-        l_x = panel->pos_x < 0 ? w + panel->pos_x : x + panel->pos_x;
-        l_y = panel->pos_y < 0 ? h + panel->pos_y : y + panel->pos_y;
-        l_w = panel->width <= 0 ? w + panel->width : x + panel->width;
-        l_h = panel->height <= 0 ? h + panel->height : y + panel->height;
-
-        (void) l_w;
-        (void) l_h;
-        draw_box_c(l_x, l_y, l_x + panel->width, l_y + panel->height, panel->color);
     }
 
+    // children are processed in "reverse" order, so that the higher priority
+    // children will draw on top of the lower priority.
     struct ui_panel **children = panel->children;
     if (children) {
+        struct ui_panel *first = *children;
+        while (*++children); // seek to end
+
         struct ui_panel *p;
         int32_t l_x = x, l_y = y, l_w = w, l_h = h;
         XYWH_TO_CHILD();
-        while ((p = *children++)) {
-            ui_panel_draw(p, l_x, l_y, l_w, l_h);
+        while ((p = *--children)) {
+            if (p->disabled) {
+                continue;
+            }
+            redraw |= ui_panel_draw(p, l_x, l_y, l_w, l_h);
+            if (p == first) {
+                break;
+            }
         }
     }
+    return redraw;
 }
 
 
 bool ui_iter(struct ui_panel *panel)
 {
-    bool draw = false;
     // FIXME
     panel = ui_root_panel;
     // LOG_W("iter panel %p \n", panel);
 
-    hud_surface_damage(30, 30, 60, 60);
-    hud_surface_commit();
-
-    ui_panel_draw(panel, 0, 0, panel->width, panel->height);
-
-    return draw;
+    return ui_panel_draw(panel, 0, 0, panel->width, panel->height);
 }
 
 
@@ -208,12 +213,10 @@ struct ui_panel *mk_panel(void)
 };
 
 
-
-
-
 struct ui_panel *init_ui(void)
 {
     ui_root_panel = gui_build_root();
     init_text();
+
     return ui_root_panel;
 }

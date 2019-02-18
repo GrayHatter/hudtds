@@ -64,7 +64,7 @@ static inline struct music_dir *ensure_dir(struct music_dir *dir)
 
 
 // TODO optimize
-struct music_dir *search_dir(char *dirname)
+struct music_dir *search_dir(const char *dirname)
 {
     DIR *d = opendir(dirname);
     struct dirent *entry;
@@ -140,22 +140,37 @@ struct music_dir *search_dir(char *dirname)
     return thisdir;
 }
 
-void *find_files_thread(void *db_)
+
+static bool dir_exists(const char *dirname)
 {
-    LOG_E("Audio search starting up\n");
-    struct music_db *db = db_;
+    if (!dirname || dirname[0] != '/') {
+        return false;
+    }
 
     struct stat s;
-    if (!stat("/tmp/mnt/sda1/music", &s)) {
-        if (!S_ISDIR(s.st_mode)) {
-            LOG_E("SDA music doesn't exist\n");
-            return NULL;
+    if (!stat(dirname, &s)) {
+        if (S_ISDIR(s.st_mode)) {
+            return true;
         }
     }
 
+    return false;
+}
+
+
+void *find_files_thread(void *db_)
+{
+    static const char *name = "/tmp/mnt/sda1/music";
+    LOG_E("Audio search starting up\n");
+    struct music_db *db = db_;
+
+    if (!dir_exists(name)) {
+        LOG_E("Error for dir %s, doesn't exist!\n", name);
+        return NULL;
+    }
 
     db->dir_count = 1;
-    db->dirs = search_dir("/tmp/mnt/sda1/music");
+    db->dirs = search_dir(name);
 
     LOG_D("dir count %i\n", db->dir_count);
     LOG_D("subdir %p \n", db->dirs);

@@ -35,7 +35,7 @@ void draw_char(FT_Bitmap *bm, uint32_t x, uint32_t y)
 void init_text(void)
 {
     FT_Init_FreeType(&library);
-    FT_New_Face(library, "./SCP.otf", 0, &face);
+    FT_New_Face(library, "/jci/scripts/SCP.otf", 0, &face);
 
     // FIXME magic numbers width, height
     FT_Set_Char_Size(face, 0, 3*64, 800, 480);

@@ -9,6 +9,7 @@
 #define CONSTRAIN_SIZE(x, y, pad) (x < pad || y < pad || x >= (WIDTH - pad) || y >= (HEIGHT) )
 #define P draw_pixel
 
+
 #define FIX_X() do {        \
     if (x > w) {            \
         int32_t ww = w;     \
@@ -16,6 +17,7 @@
         x = ww;             \
     }                       \
 }  while(0)
+
 
 #define FIX_Y() do {        \
     if (y > h) {            \
@@ -40,7 +42,9 @@ struct clipping_box_t {
     int32_t h;
 };
 
+
 static struct clipping_box_t clip_box = {0};
+
 
 void reset_cliping_box()
 {
@@ -77,6 +81,7 @@ static inline uint32_t *get_pixel(int32_t x, int32_t y)
 {
     return root_pool_data->memory + x + y * WIDTH;
 }
+
 
 static bool draw_pixel(int32_t x, int32_t y, uint32_t c)
 {
@@ -127,6 +132,7 @@ void draw_dot_c(int32_t x, int32_t y, uint32_t c)
     hud_surface_commit();
 }
 
+
 void draw_dot(int32_t x, int32_t y)
 {
     draw_dot_c(x, y, 0xff000000);
@@ -135,14 +141,8 @@ void draw_dot(int32_t x, int32_t y)
 
 void draw_vline_c(int32_t x, int32_t y, int32_t h, uint32_t c)
 {
-    if (CONSTRAIN_SIZE(x, y, 0) && CONSTRAIN_SIZE(x, h, 1) ) {
-        LOG_E("draw_vline no\n");
-        LOG_E("vl %i %i %i\n", x, y, h);
-        return;
-    }
     FIX_Y();
 
-    // LOG_E("vl %i %i %i\n", x, y, h);
     for (int32_t rem = h - y; rem > 0; rem--) {
         P(x, y + rem, c);
         P(x + 1, y + rem, c);
@@ -152,12 +152,7 @@ void draw_vline_c(int32_t x, int32_t y, int32_t h, uint32_t c)
 
 void draw_hline_c(int32_t x, int32_t y, int32_t w, uint32_t c)
 {
-    // LOG_E("hl %i %i %i\n", x, y, w);
-    if (CONSTRAIN_SIZE(x, y, 0) && CONSTRAIN_SIZE(w, y + 1, 0) ) {
-        LOG_E("draw_hline no\n");
-        LOG_E("hl %i %i %i\n", x, y, w);
-        return;
-    }
+    FIX_X();
 
     for (int rem = w - x; rem > 0; rem--) {
         P(x + rem, y, c);
@@ -180,7 +175,8 @@ void draw_square_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 }
 
 
-void draw_square(int32_t x, int32_t y, int32_t w, int32_t h) {
+void draw_square(int32_t x, int32_t y, int32_t w, int32_t h)
+{
     return draw_square_c(x, y, w, h, 0xff000000);
 }
 
@@ -194,12 +190,12 @@ void draw_box_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
     draw_hline_c(x, y, w, c);
     draw_hline_c(x, h - 1, w, c);
 
-    hud_surface_damage(x, y, w, h);
-    hud_surface_commit();
+    // hud_surface_damage(x, y, w, h);
 }
 
 
-void draw_box(int32_t x, int32_t y, int32_t w, int32_t h) {
+void draw_box(int32_t x, int32_t y, int32_t w, int32_t h)
+{
     return draw_box_c(x, y, w, h, 0xff000000);
 }
 

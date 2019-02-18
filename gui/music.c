@@ -289,7 +289,7 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                             cur_db_loc--;
                         }
                     }
-                    return true;
+                    break;
                 }
                 case MZD_KEYMAP_ROTATE_RIGHT: {
                     if (*children) {
@@ -300,7 +300,7 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                         LOG_D("already at end\n");
                         cur_db_loc++;
                     }
-                    return true;
+                    break;
                 }
                 case MZD_KEYMAP_DPAD_CENTER: {
                     LOG_D("play this one %s\n", entry->panel.name);
@@ -310,13 +310,13 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                         LOG_E("No track found here %s\n", entry->panel.name);
                     }
                     break;
-                    return true;
                 }
                 default: {
                     LOG_D("frame_key_down default case\n");
                     return false;
                 }
             }
+            p->draw_needed = true;
             return true;
         }
 
@@ -356,6 +356,7 @@ static void draw_button(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int
 
     draw_square_c(x, y, w, h, p->color);
 }
+
 
 struct ui_panel music_btn_0 = {
     .draw = draw_button,
