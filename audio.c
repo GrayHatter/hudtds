@@ -164,6 +164,7 @@ static AVCodecContext *init_codec(AVCodecContext *ctx, AVDictionary **metadata)
 struct playback_data {
     struct audio_track *track;
     bool running;
+    bool paused;
     bool clean_exit;
 };
 
@@ -237,6 +238,10 @@ static void *playback_thread(void *d)
 
     uint8_t *output = malloc(AUDIO_BUF_SIZE * 4);
     while (av_read_frame(fcon, &avpkt) >= 0 && data->running) {
+        while (data->paused) {
+            usleep(100);
+        }
+
         if (avpkt.stream_index == stream_id) {
             LOG_T("correct stream_id\n");
             int have_frame = 0;
@@ -343,7 +348,10 @@ static void *audio_thread(void *p)
             }
 
             case AMSG_PAUSE: {
-                LOG_E("AMSG_THREAD UNHANDLED msg AMSG_PAUSE\n");
+                LOG_D("AMSG_PAUSE\n");
+                if (current_playback) {
+                    current_playback->paused = !current_playback->paused;
+                }
                 break;
             }
             case AMSG_PLAY_PAUSE: {

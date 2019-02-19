@@ -38,11 +38,28 @@ static void draw_music_playing(struct ui_panel *p, int32_t x, int32_t y, int32_t
 }
 
 
+static bool music_playing_kdn(struct ui_panel *p, const uint32_t key, const uint32_t s)
+{
+    p->draw_needed = true;
+    (void) s;
+
+    switch (key) {
+        case MZD_KEYMAP_DPAD_CENTER: {
+            postmsg_audio(AMSG_PAUSE, NULL);
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
 struct music_track music_track_playing = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
         .name = "music entry playing",
         .draw = draw_music_playing,
+        .k_dn = music_playing_kdn,
         .pos_x = 80,
         .pos_y = 0,
         .height = 60,
@@ -59,15 +76,15 @@ static bool frame_key_down_main(struct ui_panel *p, const uint32_t key, const ui
 
     switch (key) {
         case MZD_KEYMAP_DPAD_UP: {
+            LOG_T("music_frame_keydown dpad up\n");
             music_track_playing.panel.focused = true;
             music_tracks_frame.focused = false;
-            LOG_E("music_frame_keydown dpad up\n");
             return true;
         }
         case MZD_KEYMAP_DPAD_DOWN: {
+            LOG_T("music_frame_keydown dpad dn\n");
             music_track_playing.panel.focused = false;
             music_tracks_frame.focused = true;
-            LOG_E("music_frame_keydown dpad dn\n");
             return true;
         }
     }

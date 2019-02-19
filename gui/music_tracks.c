@@ -36,7 +36,7 @@ static struct audio_track *find_track(uint32_t pos, struct music_dir *dir)
         pos -= dir->subdirs[i].total_track_count;
     }
 
-    LOG_E("Music track search can't happen\n");
+    LOG_E("Music track search can't happen (%s)\n", dir->dirname);
     return NULL;
 }
 
