@@ -92,7 +92,6 @@ struct weston_info {
     bool roundtrip_needed;
 };
 
-char *strdup(const char*);
 
 static void print_global_info(void *data)
 {
@@ -100,6 +99,10 @@ static void print_global_info(void *data)
 
     printf("interface: '%s', version: %u, name: %u\n", global->interface, global->version, global->id);
 }
+
+
+char *strdup(const char*);
+
 
 static void init_global_info(struct weston_info *info, struct global_info *global, uint32_t id, const char *interface,
     uint32_t version)
@@ -110,6 +113,7 @@ static void init_global_info(struct weston_info *info, struct global_info *globa
 
     wl_list_insert(info->infos.prev, &global->link);
 }
+
 
 static void print_output_info(void *data)
 {
@@ -212,9 +216,9 @@ static void print_shm_info(void *data)
 
     printf("\tformats:");
 
-    wl_list_for_each(format, &shm->formats, link)
-        printf(" %s", (format->format == WL_SHM_FORMAT_ARGB8888) ?
-                  "ARGB8888" : "XRGB8888");
+    wl_list_for_each(format, &shm->formats, link) {
+        printf(" %s", (format->format == WL_SHM_FORMAT_ARGB8888) ? "ARGB8888" : "XRGB8888");
+    }
 
     printf("\n");
 }
@@ -227,12 +231,17 @@ static void print_seat_info(void *data)
 
     printf("\tcapabilities:");
 
-    if (seat->capabilities & WL_SEAT_CAPABILITY_POINTER)
+    if (seat->capabilities & WL_SEAT_CAPABILITY_POINTER) {
         printf(" pointer");
-    if (seat->capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
+    }
+
+    if (seat->capabilities & WL_SEAT_CAPABILITY_KEYBOARD) {
         printf(" keyboard");
-    if (seat->capabilities & WL_SEAT_CAPABILITY_TOUCH)
+    }
+
+    if (seat->capabilities & WL_SEAT_CAPABILITY_TOUCH) {
         printf(" touch");
+    }
 
     printf("\n");
 }
@@ -283,8 +292,7 @@ static void add_shm_info(struct weston_info *info, uint32_t id, uint32_t version
     shm->global.print = print_shm_info;
     wl_list_init(&shm->formats);
 
-    shm->shm = wl_registry_bind(info->registry,
-                    id, &wl_shm_interface, 1);
+    shm->shm = wl_registry_bind(info->registry, id, &wl_shm_interface, 1);
     wl_shm_add_listener(shm->shm, &shm_listener, shm);
 
     info->roundtrip_needed = true;
@@ -337,10 +345,8 @@ static void add_output_info(struct weston_info *info, uint32_t id, uint32_t vers
 
     wl_list_init(&output->modes);
 
-    output->output = wl_registry_bind(info->registry, id,
-                      &wl_output_interface, 1);
-    wl_output_add_listener(output->output, &output_listener,
-                   output);
+    output->output = wl_registry_bind(info->registry, id, &wl_output_interface, 1);
+    wl_output_add_listener(output->output, &output_listener, output);
 
     info->roundtrip_needed = true;
 }

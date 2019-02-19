@@ -130,7 +130,6 @@ struct ui_panel nav_btn_7 = {
 };
 
 
-
 static bool tgl_keys(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
     const uint32_t id, const uint32_t serial)
 {

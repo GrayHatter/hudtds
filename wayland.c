@@ -98,7 +98,7 @@ static void raze_memory_pool(struct wl_shm_pool *pool)
 
 static struct wl_buffer *init_buffer(struct wl_shm_pool *pool)
 {
-    buffer = wl_shm_pool_create_buffer(pool, root_pool_data->size, WIDTH, HEIGHT, STRIDE, WL_SHM_FORMAT_ARGB8888);
+    buffer = wl_shm_pool_create_buffer(pool, root_pool_data->size, WIDTH, HEIGHT, STRIDE, WL_SHM_FORMAT_XRGB8888);
 
     if (buffer == NULL) {
         return NULL;

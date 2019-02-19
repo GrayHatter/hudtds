@@ -81,7 +81,7 @@ static void ivi_shell_create(void *data, struct wl_interface *interface, char *n
             wl_fixed_t w = wl_fixed_from_double(WIDTH);
             wl_fixed_t h = wl_fixed_from_double(HEIGHT);
             wl_proxy_marshal(ani_grp, IVI_SHELL_ANIMATION_GROUP_ANIMATE_CUBICBEZIER2d, name,
-                IVI_SHELL_ANIMATE_CUBICEBZIER2D_SET_CROPPING, 0, 0, w, h, w, h, w, h, 0, 0);
+                IVI_SHELL_ANIMATE_CUBICEBZIER2D_SET_DESTSIZE, 0, 0, w, h, w, h, w, h, 0, 0);
 
             ivi_set_alpha(ani_grp, name, 1);
 

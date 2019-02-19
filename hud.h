@@ -1,8 +1,8 @@
 #ifndef _HUDTDS_H_
 #define _HUDTDS_H_
 
-#define WIDTH 800
-#define HEIGHT 480
+#define WIDTH 810
+#define HEIGHT 485
 #define STRIDE WIDTH * 4
 
 #define min(a, b) ((a) < (b) ? (a) : (b))

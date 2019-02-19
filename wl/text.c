@@ -40,11 +40,9 @@ void init_text(void)
     // FIXME magic numbers width, height
     FT_Set_Char_Size(face, 0, 3*64, 800, 480);
 
-
     // int glyph_index = FT_Get_Char_Index(face, 'a' );
     // FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
     // FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-
 }
 
 
@@ -55,7 +53,6 @@ void text_draw_string(char *string, int32_t x, int32_t y)
     }
 
     // FIXME h/w checks
-
     y += CURRENT_FACE_HEIGHT;
     int glyph_index;
     for (unsigned int i = 0; i < strlen(string); i++) {
@@ -79,7 +76,6 @@ void text_draw_string_width(char *string, int32_t x, int32_t y, int32_t w)
     }
 
     y += CURRENT_FACE_HEIGHT;
-
     int glyph_index;
     for (unsigned int i = 0; i < strlen(string); i++) {
         glyph_index = FT_Get_Char_Index(face, string[i]);
