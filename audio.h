@@ -28,7 +28,11 @@ struct audio_track {
     char *filename;
     char *dirname;
 
-    char *track_title;
+    char *md_album_artist;
+    char *md_artist;
+    char *md_title;
+    char *md_album;
+    char *md_genre;
 };
 
 
@@ -38,6 +42,9 @@ void audio_thread_start(void);
 
 struct audio_track *audio_track_get_current(void);
 struct music_db *audio_db_get(void);
+
+int audio_track_add_metadata(struct audio_track *track);
+void audio_track_free_metadata(struct audio_track *track);
 
 
 static inline char *expand_dirname(const char *d, const char *f)

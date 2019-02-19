@@ -3,7 +3,8 @@ LD = arm-linux-gnueabihf-ld
 
 OBJ = hud.o audio.o audio_search.o wayland.o info.o
 OBJ += wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o wl/text.o wl/ivi.o wl/seat.o
-OBJ += gui/root.o gui/nav.o gui/music.o gui/notifier.o gui/onscreenkeys.o
+OBJ += gui/root.o gui/nav.o gui/notifier.o gui/onscreenkeys.o
+OBJ += gui/music.o gui/music_tracks.o gui/music_buttons.o
 
 
 CFLAGS := -Wall -Wextra -Werror $(CFLAGS)

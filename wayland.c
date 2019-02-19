@@ -69,11 +69,11 @@ static struct wl_shm_pool *init_memory_pool(void)
         return NULL;
     }
 
-    memset(root_pool_data->memory, 0x00, HEIGHT * STRIDE);
-    // uint32_t *p = root_pool_data->memory;
-    // for (int i = 0; i < HEIGHT * WIDTH; i++) {
-    //     *p++ = 0xff000000;
-    // }
+    // memset(root_pool_data->memory, 0x00, HEIGHT * STRIDE);
+    uint32_t *p = root_pool_data->memory;
+    for (int i = 0; i < HEIGHT * WIDTH; i++) {
+        *p++ = 0xff000000;
+    }
 
     pool = wl_shm_create_pool(shm, root_pool_data->fd, root_pool_data->capacity);
     if (pool == NULL) {
@@ -99,7 +99,7 @@ static void raze_memory_pool(struct wl_shm_pool *pool)
 
 static struct wl_buffer *init_buffer(struct wl_shm_pool *pool)
 {
-    buffer = wl_shm_pool_create_buffer(pool, root_pool_data->size, WIDTH, HEIGHT, STRIDE, WL_SHM_FORMAT_XRGB8888);
+    buffer = wl_shm_pool_create_buffer(pool, root_pool_data->size, WIDTH, HEIGHT, STRIDE, WL_SHM_FORMAT_ARGB8888);
 
     if (buffer == NULL) {
         return NULL;

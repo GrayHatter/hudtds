@@ -7,6 +7,7 @@
 
 #include "../wl/ui.h"
 #include "../wl/text.h"
+#include "../wl/draw.h"
 #include "../log.h"
 
 #include "../hud.h"
@@ -19,6 +20,7 @@ static void draw_root_frame(struct ui_panel *p, int32_t x, int32_t y, int32_t w,
     (void) w;
     (void) h;
 
+    draw_square(x, y, w, h);
     text_draw_string("HudTds!", 2, 2);
 }
 
@@ -36,6 +38,7 @@ struct ui_panel main_frame = {
 struct ui_panel root_panel = {
     .width = WIDTH - 1,
     .height = HEIGHT - 1,
+    .focused = true,
 
     .name = "root frame",
 

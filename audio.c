@@ -103,7 +103,7 @@ void postmsg_audio(AUDIO_MSG msg, void *data)
 }
 
 
-static AVFormatContext *open_audio_file(char *filename, bool debug, int *stream_id)
+static AVFormatContext *open_audio_track(char *filename, bool debug, int *stream_id)
 {
     LOG_D("getting format context\n");
     AVFormatContext *fcontext = avformat_alloc_context();
@@ -178,11 +178,15 @@ static void *playback_thread(void *d)
     LOG_N("location %s\n", dirname);
 
     int stream_id = -1;
-    AVFormatContext *fcon = open_audio_file(dirname, false, &stream_id);
+    AVFormatContext *fcon = open_audio_track(dirname, false, &stream_id);
     if (!fcon) {
         data->clean_exit = true;
         free(dirname);
         return NULL;
+    }
+
+    if (!data->track->file_read) {
+        audio_track_add_metadata(data->track);
     }
 
     AVCodecContext *c_ctx = init_codec(fcon->streams[stream_id]->codec, &fcon->metadata);
@@ -269,6 +273,7 @@ static void *playback_thread(void *d)
     free(output);
     free(dirname);
     avcodec_close(c_ctx);
+    avformat_close_input(&fcon);
     avformat_free_context(fcon);
     avcodec_free_frame(&avframe);
 
@@ -386,6 +391,98 @@ static void *audio_thread(void *p)
 }
 
 
+int audio_track_add_metadata(struct audio_track *track)
+{
+    LOG_D("Trying to add metadata for track\n");
+
+    if (!track->dirname || !track->filename) {
+        return -1;
+    }
+    char *dirname  = expand_dirname(track->dirname, track->filename);
+
+    AVFormatContext *file = avformat_alloc_context();
+    if (avformat_open_input(&file, dirname, NULL, NULL) < 0) {
+        LOG_E("Could not open file\n");
+        free(dirname);
+        return -2;
+    }
+
+    AVDictionaryEntry *dict = NULL;
+    if ((dict = av_dict_get(file->metadata, "album_artist", NULL, 0))) {
+        track->md_album_artist = strdup(dict->value);
+    } else if ((dict = av_dict_get(file->metadata, "artist", NULL, 0))) {
+        track->md_album_artist = strdup(dict->value);
+    }
+
+    if ((dict = av_dict_get(file->metadata, "artist", NULL, 0))) {
+        track->md_artist = strdup(dict->value);
+    } else {
+        track->md_artist = track->md_album_artist;
+    }
+
+    if ((dict = av_dict_get(file->metadata, "title", NULL, 0))) {
+        track->md_title = strdup(dict->value);
+    }
+
+    if ((dict = av_dict_get(file->metadata, "album", NULL, 0))) {
+        track->md_album = strdup(dict->value);
+    }
+
+    if ((dict = av_dict_get(file->metadata, "genre", NULL, 0))) {
+        track->md_genre = strdup(dict->value);
+    }
+
+    track->file_read = true;
+
+    avformat_close_input(&file);
+    avformat_free_context(file);
+    return 0;
+}
+
+
+void audio_track_free_metadata(struct audio_track *track)
+{
+    if (track->md_album_artist) {
+        if (track->md_album_artist == track->md_artist) {
+            track->md_artist = NULL;
+        } else if (track->md_artist) {
+            free(track->md_artist);
+            track->md_artist = NULL;
+        }
+        free(track->md_album_artist);
+        track->md_album_artist = NULL;
+    }
+
+    if (track->md_title) {
+        free(track->md_title);
+        track->md_title = NULL;
+    }
+
+    if (track->md_album) {
+        free(track->md_album);
+        track->md_album = NULL;
+    }
+
+    if (track->md_genre) {
+        free(track->md_genre);
+        track->md_genre = NULL;
+    }
+
+    track->file_read = false;
+}
+
+
+static void avlog_cb(void *ptr, int level, const char *fmt, va_list vl)
+{
+    (void) ptr;
+    (void) level;
+
+    if (LVL(DEBUG)) {
+        vfprintf(stdout, fmt, vl);
+    }
+}
+
+
 static void audio_init(void)
 {
     LOG_T("init libav*\n");
@@ -396,10 +493,12 @@ static void audio_init(void)
 
     av_register_all();
     avcodec_register_all();
+    av_log_set_callback(avlog_cb);
 
     LOG_T("init pcm\n");
     init_pcm();
 }
+
 
 struct audio_track *audio_track_get_current(void)
 {
@@ -411,6 +510,7 @@ struct music_db *audio_db_get(void)
 {
     return m_db;
 }
+
 
 void audio_thread_start(void)
 {

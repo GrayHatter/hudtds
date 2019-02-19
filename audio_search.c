@@ -64,7 +64,7 @@ static inline struct music_dir *ensure_dir(struct music_dir *dir)
 
 
 // TODO optimize
-struct music_dir *search_dir(const char *dirname)
+static struct music_dir *search_dir(const char *dirname)
 {
     DIR *d = opendir(dirname);
     struct dirent *entry;

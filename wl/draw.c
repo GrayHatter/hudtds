@@ -163,10 +163,6 @@ void draw_hline_c(int32_t x, int32_t y, int32_t w, uint32_t c)
 
 void draw_square_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 {
-    if (CONSTRAIN_SIZE(x, y, 2) && CONSTRAIN_SIZE(w, h, 2) ) {
-        LOG_E("draw_vline no\n");
-        return;
-    }
     for (int32_t draw_y = h; draw_y > y; draw_y--) {
         for (int32_t draw_x = w; draw_x > x; draw_x--) {
             P(draw_x, draw_y, c);
