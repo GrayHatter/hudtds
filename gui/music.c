@@ -27,8 +27,8 @@ static struct audio_track *find_track(uint32_t pos, struct music_dir *dir)
 
     pos -= dir->track_count;
 
-    for (uint32_t i = 0; i < dir->track_count; i++) {
-        struct audio_track *track = find_track(pos, &dir[i]);
+    for (uint32_t i = 0; i < dir->dir_count; i++) {
+        struct audio_track *track = find_track(pos, &dir->subdirs[i]);
         if (track) {
             return track;
         }

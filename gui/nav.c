@@ -182,7 +182,7 @@ static bool touch_exit(struct ui_panel *p, const int mx, const int my, const int
 
 struct ui_panel nav_btn_9 = {
     .draw = draw_button,
-    .color = 0xff000000,
+    .color = 0xff333333,
     .name = "nav_btn_9",
     .t_dn = touch_exit,
     .pos_x = NAV_BTW_W * 9,

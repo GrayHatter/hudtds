@@ -20,12 +20,13 @@
 
 
 static struct wl_compositor    *compositor;
+static struct wl_region        *opaque_region;
 static struct wl_display       *display;
 static struct wl_shell         *shell;
 static struct wl_shm           *shm;
 static struct wl_surface       *surface;
 static struct wl_shell_surface *shell_surface;
-static struct wl_registry *registry;
+static struct wl_registry      *registry;
 
 static struct wl_shm_pool *pool;
 static struct wl_buffer   *buffer;
@@ -68,7 +69,7 @@ static struct wl_shm_pool *init_memory_pool(void)
         return NULL;
     }
 
-    memset(root_pool_data->memory, 0xff, HEIGHT * STRIDE);
+    memset(root_pool_data->memory, 0x00, HEIGHT * STRIDE);
     // uint32_t *p = root_pool_data->memory;
     // for (int i = 0; i < HEIGHT * WIDTH; i++) {
     //     *p++ = 0xff000000;
@@ -107,6 +108,9 @@ static struct wl_buffer *init_buffer(struct wl_shm_pool *pool)
     root_pool_data->size += WIDTH * HEIGHT * sizeof(uint32_t);
 
     wl_surface_attach(surface, buffer, 0, 0);
+    opaque_region = wl_compositor_create_region(compositor);
+    wl_region_add(opaque_region, 0, 0, WIDTH, HEIGHT);
+    wl_surface_set_opaque_region(surface, opaque_region);
     wl_surface_commit(surface);
 
     LOG_D("buffer done\n");
@@ -132,11 +136,7 @@ static void handle_configure(void *data, struct wl_shell_surface *surface, uint3
     int32_t height)
 {
     (void) data;
-    (void) surface;
-    (void) edges;
-    (void) width;
-    (void) height;
-    LOG_E("surface configure\n");
+    LOG_E("surface configure%p %u %u x %u\n", surface, edges, width, height);
 }
 
 
@@ -247,8 +247,7 @@ struct wl_display *init_wayland(void)
     init_root_surface();
     init_buffer(pool);
     wl_shell_surface_set_title(shell_surface, "HUDTDS");
-    // wl_shell_surface_set_toplevel(shell_surface);
-
+    wl_shell_surface_set_toplevel(shell_surface);
     wl_shell_surface_set_fullscreen(shell_surface, WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT, 0, NULL);
 
     return display;
@@ -261,9 +260,6 @@ int do_wayland(void)
         hud_surface_damage(0, 0, WIDTH, HEIGHT);
         hud_surface_commit();
     }
-
-    hud_surface_damage(0, 0, WIDTH, HEIGHT);
-    hud_surface_commit();
 
     int res = wl_display_dispatch(display);
     if (res < 0) {
