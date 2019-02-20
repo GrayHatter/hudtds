@@ -2,6 +2,12 @@
 #define _HUD_DRAW_H_
 
 #include <stdint.h>
+#include <stdbool.h>
+
+
+void draw_swap_buffer(uint32_t *buffer);
+
+bool draw_pixel(int32_t x, int32_t y, uint32_t c);
 
 
 void draw_dot_c(int32_t x, int32_t y, uint32_t color);

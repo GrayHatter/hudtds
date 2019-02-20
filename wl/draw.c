@@ -10,6 +10,8 @@
 #define P draw_pixel
 
 
+static uint32_t *draw_buffer = NULL;
+
 #define FIX_X() do {        \
     if (x > w) {            \
         int32_t ww = w;     \
@@ -77,13 +79,19 @@ void set_cliping_box(int32_t x, int32_t y, int32_t w, int32_t h)
 }
 
 
-static inline uint32_t *get_pixel(int32_t x, int32_t y)
+void draw_swap_buffer(uint32_t *buffer)
 {
-    return root_pool_data->memory + x + y * WIDTH;
+    draw_buffer = buffer;
 }
 
 
-static bool draw_pixel(int32_t x, int32_t y, uint32_t c)
+static inline uint32_t *get_pixel(int32_t x, int32_t y)
+{
+    return draw_buffer + x + y * WIDTH;
+}
+
+
+bool draw_pixel(int32_t x, int32_t y, uint32_t c)
 {
     if ((clip_box.set
             && (x < clip_box.x
@@ -109,7 +117,7 @@ void draw_dot_c(int32_t x, int32_t y, uint32_t c)
         return;
     }
 
-    uint32_t *p = root_pool_data->memory + (x - 2) + (y - 2) * WIDTH;
+    uint32_t *p = draw_buffer + (x - 2) + (y - 2) * WIDTH;
     p[2] = c;
     p += WIDTH;
     p[1] = c;

@@ -3,7 +3,7 @@
 // #include FT_CONFIG_MODULES_H
 
 #include "../hud.h"
-#include "../wayland.h"
+#include "../wl/draw.h"
 
 #include "../log.h"
 
@@ -15,20 +15,16 @@ static FT_Face face = NULL;
 
 void draw_char(FT_Bitmap *bm, uint32_t x, uint32_t y)
 {
-    uint32_t *p = root_pool_data->memory + x + y * WIDTH;
     uint8_t *g = bm->buffer;
     uint32_t d;
-
-    for (int i = bm->rows; i > 0; i--) {
-        for (int j = bm->width; j > 0; j--) {
+    for (uint32_t i = 0; i < bm->rows; i++) {
+        for (uint32_t j = 0; j < bm->width; j++) {
             if (*g) {
                 d = 0xff000000 | (*g) << 16 | (*g) << 8 | *g;
-                *p = d;
+                draw_pixel(x + j, y + i, d);
             }
-            p++;
             g++;
         }
-        p += WIDTH - bm->width;
     }
 }
 

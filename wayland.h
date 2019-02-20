@@ -3,15 +3,22 @@
 
 #include <stdint.h>
 
-struct pool_data {
+struct surface {
+    struct wl_shell_surface *shell_surface;
+    struct wl_surface *surface;
+    struct wl_shm_pool *pool;
+
     int fd;
+    uint8_t count;
     uint32_t *memory;
-    unsigned capacity;
-    unsigned size;
+    struct wl_buffer *buffer[3];
+    unsigned mem_capacity;
+
+    unsigned frame_size;
+    uint32_t width;
+    uint32_t height;
+    uint32_t stride;
 };
-
-extern struct pool_data *root_pool_data;
-
 
 void hud_surface_damage(int32_t x, int32_t y, int32_t w, int32_t h);
 void hud_surface_commit();
