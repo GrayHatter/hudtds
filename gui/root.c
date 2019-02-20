@@ -44,8 +44,8 @@ struct ui_panel root_panel = {
 
     .children = (struct ui_panel*[]){
         &notifier,
-        &main_frame,
         &nav_frame,
+        &main_frame,
         NULL,
     }
 };

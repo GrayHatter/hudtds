@@ -61,12 +61,12 @@ static struct audio_track *track_pos_get(uint32_t pos)
 static const char *entry_text(struct audio_track *t)
 {
     static char str[2048] = {0}; // because fuck memory safety!
-
-    int pos = 0;
     if (!t) {
-        return "No Track Found";
+        snprintf(str, 2048, "%s", "No Track Found");
+        return str;
     }
 
+    int pos = 0;
     if (!t->file_read) {
         audio_track_add_metadata(t);
     }
@@ -83,10 +83,11 @@ static const char *entry_text(struct audio_track *t)
 
     if (pos == 0) {
         if (t->filename) {
-            return t->filename;
+            snprintf(str, 2048, "file: %s", t->filename);
+            return str;
         }
 
-        return "Unable to generate name";
+        snprintf(str, 2048, "%s", "Unable to generate name");
     }
 
     return str;
