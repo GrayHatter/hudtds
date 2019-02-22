@@ -9,39 +9,13 @@
 #include "../audio.h"
 #include "../audio_search.h"
 
-
 #include <stdlib.h>
-// #include <string.h>
+
 
 static uint32_t cur_db_loc = 0;
 
 
-static struct audio_track *find_track(uint32_t pos, struct music_dir *dir)
-{
-    if (pos > dir->total_track_count) {
-        return NULL;
-    }
-
-    if (pos < dir->track_count) {
-        return &dir->tracks[pos];
-    }
-
-    pos -= dir->track_count;
-
-    for (uint32_t i = 0; i < dir->dir_count; i++) {
-        struct audio_track *track = find_track(pos, &dir->subdirs[i]);
-        if (track) {
-            return track;
-        }
-        pos -= dir->subdirs[i].total_track_count;
-    }
-
-    LOG_E("Music track search can't happen (%s)\n", dir->dirname);
-    return NULL;
-}
-
-
-static struct audio_track *track_pos_get(uint32_t pos)
+static struct audio_track *track_get_pos(uint32_t pos)
 {
     pos += cur_db_loc;
     struct music_db *db = audio_db_get();
@@ -103,7 +77,7 @@ static void draw_music_track(struct ui_panel *p, int32_t x, int32_t y, int32_t w
     draw_square_c(x, y, w, y + p->height, 0xff000000);
 
     struct music_track *music = (struct music_track *)p;
-    struct audio_track *track = track_pos_get(music->position);
+    struct audio_track *track = track_get_pos(music->position);
 
     // LOG_E("Draw music entry (track: %s), %i %i %i %i (%i)\n", music->track_title, x, y, w, h, y + p->height);
     if (music_tracks_frame.focused && p->focused) {
@@ -253,8 +227,8 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                 }
                 case MZD_KEYMAP_DPAD_CENTER: {
                     LOG_D("play this one %s\n", entry->panel.name);
-                    if (track_pos_get(entry->position)) {
-                        postmsg_audio(AMSG_PLAY, track_pos_get(entry->position));
+                    if (track_get_pos(entry->position)) {
+                        postmsg_audio(AMSG_PLAY, track_get_pos(entry->position));
                     } else {
                         LOG_E("No track found here %s\n", entry->panel.name);
                     }

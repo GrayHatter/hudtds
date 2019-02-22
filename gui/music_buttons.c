@@ -66,14 +66,18 @@ static void draw_button(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int
     w = p->width <= 0 ? w + p->width : x + p->width;
     h = p->height <= 0 ? h + p->height : y + p->height;
 
-    draw_square_c(x, y, w, h, p->color);
+    if (p->focused && music_buttons_frame.focused) {
+        draw_square_c(x, y, w, h, p->color);
+    } else {
+        draw_box_c(x, y, w, h, p->color);
+    }
 }
 
 
 struct ui_panel music_btn_0 = {
-    .draw = draw_button,
     .name = "music_btn_0",
     .color = 0xff0000ff,
+    .draw = draw_button,
     .t_dn = music_btn_tracks,
     .pos_x = 0,
     .pos_y = 0,
@@ -82,9 +86,9 @@ struct ui_panel music_btn_0 = {
 };
 
 struct ui_panel music_btn_1 = {
-    .draw = draw_button,
     .color = 0xff00ff00,
     .name = "music_btn_1",
+    .draw = draw_button,
     .t_dn = music_btn_artists,
     .pos_x = 0,
     .pos_y = 80 * 1,
@@ -93,9 +97,9 @@ struct ui_panel music_btn_1 = {
 };
 
 struct ui_panel music_btn_2 = {
-    .draw = draw_button,
     .name = "music_btn_2",
     .color = 0xffff0000,
+    .draw = draw_button,
     .t_dn = music_btn_albums,
     .pos_x = 0,
     .pos_y = 80 * 2,
@@ -104,9 +108,9 @@ struct ui_panel music_btn_2 = {
 };
 
 struct ui_panel music_btn_3 = {
-    .draw = draw_button,
     .name = "music_btn_3",
     .color = 0xffff00ff,
+    .draw = draw_button,
     .t_dn = music_btn_tracks,
     .pos_x = 0,
     .pos_y = 80 * 3,
@@ -125,8 +129,8 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
     if (!children) {
         return false;
     }
-    struct music_track *first = *children, *entry, *prev;
 
+    struct music_track *first = *children, *entry, *prev;
 
     while ((entry = *children++)) {
         if (entry->panel.focused) {

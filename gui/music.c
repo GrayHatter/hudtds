@@ -11,8 +11,6 @@
 
 
 #include <stdlib.h>
-// #include <string.h>
-
 
 
 static void draw_music_playing(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
@@ -69,23 +67,55 @@ struct music_track music_track_playing = {
 };
 
 
-static bool frame_key_down_main(struct ui_panel *p, const uint32_t key, const uint32_t s)
+static bool frame_key_down_main(struct ui_panel *panel, const uint32_t key, const uint32_t s)
 {
-    p->draw_needed = true;
+    panel->draw_needed = true;
     (void) s;
 
     switch (key) {
         case MZD_KEYMAP_DPAD_UP: {
             LOG_T("music_frame_keydown dpad up\n");
-            music_track_playing.panel.focused = true;
-            music_tracks_frame.focused = false;
-            return true;
+            if (music_track_playing.panel.focused == true) {
+                return false;
+            } else {
+                music_track_playing.panel.focused = true;
+                music_buttons_frame.focused = false;
+                music_tracks_frame.focused = false;
+                return true;
+            }
         }
         case MZD_KEYMAP_DPAD_DOWN: {
             LOG_T("music_frame_keydown dpad dn\n");
-            music_track_playing.panel.focused = false;
-            music_tracks_frame.focused = true;
-            return true;
+            if (music_tracks_frame.focused == true) {
+                return false;
+            } else {
+                music_tracks_frame.focused = true;
+                music_track_playing.panel.focused = false;
+                music_buttons_frame.focused = false;
+                return true;
+            }
+        }
+        case MZD_KEYMAP_DPAD_LEFT: {
+            LOG_T("music_frame_keydown dpad left\n");
+            if (music_buttons_frame.focused == true) {
+                return false;
+            } else {
+                music_buttons_frame.focused = true;
+                music_track_playing.panel.focused = false;
+                music_tracks_frame.focused = false;
+                return true;
+            }
+        }
+        case MZD_KEYMAP_DPAD_RIGHT: {
+            LOG_T("music_frame_keydown dpad right\n");
+            if (music_tracks_frame.focused == true) {
+                return false;
+            } else {
+                music_tracks_frame.focused = true;
+                music_track_playing.panel.focused = false;
+                music_buttons_frame.focused = false;
+                return true;
+            }
         }
     }
     return false;

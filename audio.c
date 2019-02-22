@@ -7,9 +7,8 @@
 #define _POSIX_C_SOURCE 200112L
 #define __USE_XOPEN_EXTENDED
 
-#define _10_MSECS 10 * 1000
-
 #include <alsa/asoundlib.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -32,6 +31,9 @@
 #define avcodec_free_frame av_frame_free
 #define avcodec_alloc_frame av_frame_alloc
 #endif
+
+
+#define _10_MSECS 10 * 1000
 
 
 #define DEFAULT_CHANNELS    2
@@ -401,7 +403,7 @@ static void *audio_thread(void *p)
 
 int audio_track_add_metadata(struct audio_track *track)
 {
-    LOG_D("Trying to add metadata for track\n");
+    LOG_T("Trying to add metadata for track\n");
 
     if (!track->dirname || !track->filename) {
         return -1;

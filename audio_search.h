@@ -29,11 +29,16 @@ struct music_db {
     struct music_dir *dirs;
 
     uint32_t total_track_count;
+
+    uint32_t artist_count;
+    char **artists;
 };
 
 
 
 void *find_files_thread(void *db);
+
+struct audio_track *find_track(uint32_t pos, struct music_dir *dir);
 
 
 #endif // _HUD_AUDIO_SEARCH_H_

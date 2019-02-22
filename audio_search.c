@@ -13,6 +13,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define _10_MSECS 10 * 1000
+
 
 const char *supported_ext[] = {
     "mp3",
@@ -160,7 +162,7 @@ static bool dir_exists(const char *dirname)
 
 void *find_files_thread(void *db_)
 {
-    static const char *name = "/tmp/mnt/sda1/music";
+    static const char *name = "/home/grayhatter/music";
     LOG_E("Audio search starting up\n");
     struct music_db *db = db_;
 
@@ -183,5 +185,37 @@ void *find_files_thread(void *db_)
 
     db->search_done = true;
     postmsg_audio(AMSG_TRACK_SCAN_DONE, db);
+
+    struct audio_track *track;
+    uint32_t pos = 0;
+    while ((track = find_track(pos++, db->dirs))) {
+        audio_track_add_metadata(track);
+        usleep(_10_MSECS);  // Don't thrash the system on startup
+    }
     return NULL;
 }
+
+
+struct audio_track *find_track(uint32_t pos, struct music_dir *dir)
+{
+    if (pos > dir->total_track_count) {
+        return NULL;
+    }
+
+    if (pos < dir->track_count) {
+        return &dir->tracks[pos];
+    }
+
+    pos -= dir->track_count;
+
+    for (uint32_t i = 0; i < dir->dir_count; i++) {
+        struct audio_track *track = find_track(pos, &dir->subdirs[i]);
+        if (track) {
+            return track;
+        }
+        pos -= dir->subdirs[i].total_track_count;
+    }
+
+    return NULL;
+}
+
