@@ -1,9 +1,10 @@
 #include "hud.h"
 
-#include "info.h"
 #include "log.h"
 #include "wayland.h"
+
 #include "audio.h"
+#include "gps.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -34,8 +35,11 @@ int main(void)
     init_wayland();
     LOG_D("wl init done\n");
 
-    LOG_D("Starting Audio Thread\n");
-    audio_thread_start();
+    // LOG_D("Starting Audio Thread\n");
+    // audio_thread_start();
+
+    LOG_D("Starting GPS Thread\n");
+    gps_thread_start();
 
     while (!done) {
         if (do_wayland() < 0) {

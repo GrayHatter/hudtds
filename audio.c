@@ -1,11 +1,8 @@
 #include "audio.h"
 
-#include "audio_search.h"
 #include "hud.h"
 #include "log.h"
-
-#define _POSIX_C_SOURCE 200112L
-#define __USE_XOPEN_EXTENDED
+#include "audio_search.h"
 
 #include <alsa/asoundlib.h>
 
@@ -13,7 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
+#include <time.h>
 
 #include <libavutil/common.h>
 #include <libavcodec/avcodec.h>
@@ -33,7 +30,10 @@
 #endif
 
 
-#define _10_MSECS 10 * 1000
+#define _10_mSECS 1000 * 1000 * 10
+#define _10_uSECS 1000 * 10
+
+#define _100_uSECS 1000 * 100
 
 
 #define DEFAULT_CHANNELS    2
@@ -97,7 +97,8 @@ static void *next_amsg_data = NULL;
 void postmsg_audio(AUDIO_MSG msg, void *data)
 {
     if (msg && next_amsg_msg) {
-        usleep(1000);
+        struct timespec __ts_nanosleep = { .tv_nsec = _10_uSECS };
+        nanosleep(&__ts_nanosleep, NULL);
     }
     next_amsg_msg = msg;
     next_amsg_data = data;
@@ -241,7 +242,8 @@ static void *playback_thread(void *d)
     uint8_t *output = malloc(AUDIO_BUF_SIZE * 4);
     while (av_read_frame(fcon, &avpkt) >= 0 && data->running) {
         while (data->paused) {
-            usleep(100);
+            struct timespec __ts_nanosleep = { .tv_nsec = _10_mSECS };
+            nanosleep(&__ts_nanosleep, NULL);
         }
 
         if (avpkt.stream_index == stream_id) {
@@ -321,7 +323,8 @@ static void *audio_thread(void *p)
                     if (current_playback) {
                         current_playback->running = false;
                         while (!current_playback->clean_exit) {
-                            usleep(100);
+                            struct timespec __ts_nanosleep = { .tv_nsec = _10_uSECS };
+                            nanosleep(&__ts_nanosleep, NULL);
                         }
 
                         free(current_playback);
@@ -391,9 +394,11 @@ static void *audio_thread(void *p)
             }
         }
         if (audio_playing) {
-            usleep(100);
+            struct timespec __ts_nanosleep = { .tv_nsec = _100_uSECS };
+            nanosleep(&__ts_nanosleep, NULL);
         } else {
-            usleep(_10_MSECS);
+            struct timespec __ts_nanosleep = { .tv_nsec = _10_mSECS };
+            nanosleep(&__ts_nanosleep, NULL);
         }
     }
 
@@ -524,7 +529,7 @@ struct music_db *audio_db_get(void)
 
 void audio_thread_start(void)
 {
-    LOG_E("audio_thread_start\n");
+    LOG_N("audio_thread_start\n");
 
     audio_init();
 

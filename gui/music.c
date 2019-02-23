@@ -15,10 +15,10 @@
 
 static void draw_music_playing(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
 {
-    x = p->pos_x < 0 ? w + p->pos_x : x + p->pos_x; \
-    y = p->pos_y < 0 ? h + p->pos_y : y + p->pos_y; \
-    w = p->width <= 0 ? w + p->width : x + p->width; \
-    h = p->height <= 0 ? h + p->height : y + p->height; \
+    x = p->pos_x < 0 ? w + p->pos_x : x + p->pos_x;
+    y = p->pos_y < 0 ? h + p->pos_y : y + p->pos_y;
+    w = p->width <= 0 ? w + p->width : x + p->width;
+    h = p->height <= 0 ? h + p->height : y + p->height;
 
     // LOG_E("Draw music entry (track: %s), %i %i %i %i (%i)\n", music->track_title, x, y, w, h, y + p->height);
     if (p->focused) {
@@ -130,6 +130,8 @@ struct ui_panel music_frame = {
     .height = -80,
     .k_dn = frame_key_down_main,
     .focused = true,
+    .disabled = false,
+
     .children = (struct ui_panel*[]) {
         (struct ui_panel*)&music_track_playing,
         (struct ui_panel*)&music_buttons_frame,

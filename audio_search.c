@@ -162,7 +162,7 @@ static bool dir_exists(const char *dirname)
 
 void *find_files_thread(void *db_)
 {
-    static const char *name = "/home/grayhatter/music";
+    static const char *name = "/tmp/mnt/sda1";
     LOG_E("Audio search starting up\n");
     struct music_db *db = db_;
 

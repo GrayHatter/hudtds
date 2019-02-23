@@ -166,7 +166,7 @@ static void keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard, 
     (void) data;
     (void) keyboard;
     (void) serial;
-    LOG_I("Mods depressed %d, latched %d, locked %d, group %d\n", mods_depressed, mods_latched, mods_locked, group);
+    LOG_N("Mods depressed %d, latched %d, locked %d, group %d\n", mods_depressed, mods_latched, mods_locked, group);
 }
 
 static const struct wl_keyboard_listener keyboard_listener = {

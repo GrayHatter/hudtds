@@ -108,7 +108,7 @@ static struct ui_panel *find_focused(struct ui_panel *panel)
 
 bool ui_key_down(struct ui_panel *panel, const uint32_t key, const uint32_t serial)
 {
-    LOG_T("Keydown on %s\n", panel->name);
+    LOG_E("Keydown on %s\n", panel->name);
 
     struct ui_panel *focused = find_focused(panel);
     if (focused) {
@@ -162,7 +162,8 @@ bool ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
 {
     bool redraw = panel->draw_needed;
     panel->draw_needed = false;
-    LOG_D("ui panel draw %p\n", panel);
+    LOG_D("ui panel draw %p %s\n", panel, panel->name);
+
     if (panel->draw) {
         panel->draw(panel, x, y, w, h);
     }
@@ -178,15 +179,15 @@ bool ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
         int32_t l_x = x, l_y = y, l_w = w, l_h = h;
         XYWH_TO_CHILD();
         while ((p = *--children)) {
-            if (p->disabled) {
-                continue;
+            if (!p->disabled) {
+                redraw |= ui_panel_draw(p, l_x, l_y, l_w, l_h);
             }
-            redraw |= ui_panel_draw(p, l_x, l_y, l_w, l_h);
             if (p == first) {
                 break;
             }
         }
     }
+
     return redraw;
 }
 

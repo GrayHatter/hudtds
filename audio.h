@@ -2,9 +2,6 @@
 #define _HUD_AUDIO_H_
 
 #include <stdbool.h>
-#include <stdlib.h>
-#include <stdio.h>
-
 
 typedef enum {
     AMSG_THREAD_EXIT = -1,
@@ -45,16 +42,5 @@ struct music_db *audio_db_get(void);
 
 int audio_track_add_metadata(struct audio_track *track);
 void audio_track_free_metadata(struct audio_track *track);
-
-
-static inline char *expand_dirname(const char *d, const char *f)
-{
-    size_t l = snprintf(NULL, 0, "%s/%s", d, f) + 1;
-    char *filename = malloc(l + 1);
-    if (filename) {
-        snprintf(filename, l, "%s/%s", d, f);
-    }
-    return filename;
-}
 
 #endif // _HUD_AUDIO_H_

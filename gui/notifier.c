@@ -45,7 +45,7 @@ static void draw_timedate(struct ui_panel *p, int32_t x, int32_t y, int32_t w, i
 
 struct ui_panel notifications = {
     .type = PANEL_FRAME,
-    .name = "time_date",
+    .name = "notifications",
     .draw = draw_notifications,
     .pos_x = -150,
     .pos_y = 0,
