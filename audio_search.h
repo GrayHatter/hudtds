@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
 extern const char *supported_ext[];
 
 struct music_dir {

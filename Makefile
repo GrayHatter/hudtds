@@ -1,6 +1,11 @@
 CC = arm-linux-gnueabihf-gcc
 LD = arm-linux-gnueabihf-ld
 
+# CC = arm-linux-gnueabi-gcc
+# LD = arm-linux-gnueabi-ld
+# CC = arm-linux-musleabi-gcc
+# LD = arm-linux-mulleabi-ld
+
 OBJ = hud.o
 OBJ += wayland.o wl/info.o wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o wl/text.o wl/ivi.o wl/seat.o
 OBJ += gps.o
@@ -17,19 +22,18 @@ CFLAGS += -Wno-sign-compare
 
 CFLAGS += -Wno-deprecated-declarations
 
-CFLAGS += -std=c11 -O0
+CFLAGS += -std=c11
+CFLAGS += -O0
 
-# CFLAGS += -isystem/usr/include/freetype2/
+CFLAGS += -mcpu=arm710
+CFLAGS += -mtune=arm710
+CFLAGS += -mfpu=vfpv3
+CFLAGS += -mfloat-abi=soft
 
-CFLAGS += -mcpu=arm7 -mfloat-abi=hard
-CFLAGS += --sysroot=/usr/arm-linux-gnueabihf
-CFLAGS += -L/home/grayhatter/mazda/libs2/lib/
-CFLAGS += -isystem/usr/arm-linux-gnueabihf/include/freetype2/
+CFLAGS += -isystem=/include/freetype2
 
-LDFLAGS = -Wl,-rpath-link=/home/grayhatter/mazda/libs2/lib/
-
-MAZDA_C_SO =
-MAZDA_C_SO = /home/grayhatter/mazda/libs2/lib/libc.so.6
+LDFLAGS = -Wl,-rpath-link=/home/grayhatter/mazda/libs/lib/
+LDFLAGS = -Wl,-rpath-link=/home/grayhatter/mazda/libs/usr/lib/
 
 LIBS   +=  -lfreetype -lz
 LIBS   +=  -lwayland-ivi-shell-client -lwayland-ivi-client
@@ -39,11 +43,13 @@ LIBS   +=  -lgps
 LIBS   +=  -lffi -ldl -lrt -lpthread -lm
 
 %.o: %.c %.h
-	$(CC) -c -o $@ $(INCLUDE) $(CFLAGS) $<
+	@# $(CC) -v -g -c -o $@ $(CFLAGS) $<
+	@$(CC) -c -o $@ $(CFLAGS) $<
+
 
 hudtds: $(OBJ)
-	# $(LD) --verbose -o hudtds $(OBJ) $(LDFLAGS) $(LIBS)
-	$(CC) $(OBJ) $(CFLAGS) $(LDFLAGS) $(LIBS) $(MAZDA_C_SO) -o $@
+	@# $(CC) -v $(OBJ) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $@
+	@$(CC) $(OBJ) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $@
 
 all: hudtds
 

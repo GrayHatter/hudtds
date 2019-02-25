@@ -4,13 +4,17 @@
 #include "log.h"
 #include "audio_search.h"
 
-#include <alsa/asoundlib.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+
+#define u_int8_t uint8_t
+#define u_int16_t uint16_t
+#define u_int32_t uint32_t
+#define u_int64_t uint64_t
+#include <alsa/asoundlib.h>
 
 #include <libavutil/common.h>
 #include <libavcodec/avcodec.h>

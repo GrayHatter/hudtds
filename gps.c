@@ -27,8 +27,22 @@ void copy_data(struct gps_data_t *data)
     hud_gps_data.alt = data->fix.altitude;
     hud_gps_data.gnd_speed = data->fix.speed;
     hud_gps_data.vert_speed = data->fix.climb;
-    hud_gps_data.num_sats_connected = data->satellites_used;
-    hud_gps_data.num_sats_visible = data->satellites_visible;
+    hud_gps_data.satellites_visible = data->satellites_visible;
+    hud_gps_data.satellites_used = data->satellites_used;
+
+    for (int i = 0; i < data->satellites_visible && i < MAXCHANNELS; i++) {
+        memset(&hud_gps_data.satellites[i], 0, sizeof (struct hud_sat_data));
+        hud_gps_data.satellites[i].visable = true;
+        hud_gps_data.satellites[i].PRN = data->PRN[i];
+        hud_gps_data.satellites[i].elevation = data->elevation[i];
+        hud_gps_data.satellites[i].azimuth = data->azimuth[i];
+        hud_gps_data.satellites[i].snr = data->ss[i];
+        for (int j = 0; j < data->satellites_used; j++) {
+            if (data->used[j] == data->PRN[i]) {
+                hud_gps_data.satellites[i].used = true;
+            }
+        }
+    }
 }
 
 

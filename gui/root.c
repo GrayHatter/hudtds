@@ -63,9 +63,9 @@ struct ui_panel main_frame = {
     .focused = true,
     .k_dn = main_kdn,
     .pos_x = 0,
-    .pos_y = 0,
+    .pos_y = 35,
     .width = 0,
-    .height = -60,
+    .height = -65,
     .children = (struct ui_panel*[]) {
         &music_frame,
         &gps_frame,

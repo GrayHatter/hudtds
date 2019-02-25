@@ -108,7 +108,7 @@ static struct ui_panel *find_focused(struct ui_panel *panel)
 
 bool ui_key_down(struct ui_panel *panel, const uint32_t key, const uint32_t serial)
 {
-    LOG_E("Keydown on %s\n", panel->name);
+    LOG_D("Keydown on %s\n", panel->name);
 
     struct ui_panel *focused = find_focused(panel);
     if (focused) {
@@ -128,7 +128,7 @@ bool ui_key_down(struct ui_panel *panel, const uint32_t key, const uint32_t seri
 
 bool ui_key_up(struct ui_panel *panel, const uint32_t key, const uint32_t serial)
 {
-    LOG_T("Keyup on %s", panel->name);
+    LOG_D("Keyup on %s", panel->name);
 
     struct ui_panel *focused = find_focused(panel);
     if (focused) {

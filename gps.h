@@ -1,6 +1,23 @@
 #ifndef _HUDTDS_GPS_H_
 #define _HUDTDS_GPS_H_
 
+#define _POSIX_C_SOURCE 200809L
+
+#define GPSCOUNT 72  // this magic number courtesy gps.h
+
+#include <stdbool.h>
+#include <stdint.h>
+
+struct hud_sat_data {
+    bool visable;
+    bool used;
+    int PRN;
+    int elevation;
+    int azimuth;
+    double snr;
+};
+
+
 struct hud_gps_data {
     double lat;
     double lon;
@@ -9,8 +26,9 @@ struct hud_gps_data {
     double gnd_speed;
     double vert_speed;
 
-    int num_sats_visible;
-    int num_sats_connected;
+    uint8_t satellites_visible;
+    uint8_t satellites_used;
+    struct hud_sat_data satellites[GPSCOUNT];
 };
 
 

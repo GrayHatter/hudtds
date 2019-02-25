@@ -10,6 +10,8 @@
 
 #define _POSIX_C_SOURCE 200809L
 
+extern char *strdup (__const char *__s);
+
 typedef unsigned int uint;
 
 #include <stdlib.h>

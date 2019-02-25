@@ -1,10 +1,13 @@
+#define _POSIX_C_SOURCE 200809L
 #include "audio_search.h"
 
 #include "audio.h"
 #include "hud.h"
 #include "log.h"
 
-#define __USE_XOPEN_EXTENDED
+#define _POSIX_C_SOURCE 200809L
+
+#include <time.h>
 
 #include <dirent.h>
 #include <stdlib.h>
@@ -13,7 +16,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define _10_MSECS 10 * 1000
+#define _10_mSECS 1000 * 1000 * 10
 
 
 const char *supported_ext[] = {
@@ -190,7 +193,8 @@ void *find_files_thread(void *db_)
     uint32_t pos = 0;
     while ((track = find_track(pos++, db->dirs))) {
         audio_track_add_metadata(track);
-        usleep(_10_MSECS);  // Don't thrash the system on startup
+        struct timespec __ts_nanosleep = { .tv_nsec = _10_mSECS };
+        nanosleep(&__ts_nanosleep, NULL);
     }
     return NULL;
 }

@@ -303,7 +303,7 @@ void hud_surface_damage(int32_t x, int32_t y, int32_t w, int32_t h)
 
 void hud_surface_commit()
 {
-    LOG_E("surface commit\n");
+    LOG_D("surface commit\n");
     static uint8_t next = 0;
     uint32_t wl_offset = ++next % root_surface->count;
     uint32_t draw_offset = (next + 1) % root_surface->count;

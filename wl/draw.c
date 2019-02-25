@@ -5,6 +5,7 @@
 #include "../log.h"
 
 #include <stdbool.h>
+#include <math.h>
 
 #define CONSTRAIN_SIZE(x, y, pad) (x < pad || y < pad || x >= (WIDTH - pad) || y >= (HEIGHT) )
 #define P draw_pixel
@@ -91,6 +92,25 @@ static inline uint32_t *get_pixel(int32_t x, int32_t y)
 }
 
 
+static uint8_t calculate_mix_8(uint8_t old, uint8_t new, float mix)
+{
+    if (old > new) {
+        return old - ((old - new) * (1.0 - mix));
+    } else {
+        return old + ((new - old) * (1.0 - mix));
+    }
+}
+
+
+static uint32_t calculate_mix_32(uint32_t old, uint32_t new, float mix)
+{
+    return 0xff000000
+          | calculate_mix_8(old >> 16, new >> 16, mix) << 16
+          | calculate_mix_8(old >> 8,  new >> 8,  mix) << 8
+          | calculate_mix_8(old >> 0,  new >> 0,  mix);
+}
+
+
 bool draw_pixel(int32_t x, int32_t y, uint32_t c)
 {
     if ((clip_box.set
@@ -106,6 +126,32 @@ bool draw_pixel(int32_t x, int32_t y, uint32_t c)
 
     uint32_t *p = get_pixel(x, y);
     *p = c;
+    return true;
+}
+
+
+bool draw_pixel_mix(int32_t x, int32_t y, float mix, uint32_t c)
+{
+    if ((clip_box.set
+            && (x < clip_box.x
+                || x > clip_box.w
+                || y < clip_box.y
+                || y > clip_box.h))
+        || y >= HEIGHT || y < 0
+        || x >= WIDTH  || x < 0
+    ) {
+        return false;
+    }
+
+    uint32_t *p = get_pixel(x, y);
+
+    if (mix <= 0.0) {
+        *p = c;
+    } else if (mix >= 1.0) {
+        return true;
+    } else {
+        *p = calculate_mix_32(*p, c, mix);
+    }
     return true;
 }
 
@@ -135,9 +181,6 @@ void draw_dot_c(int32_t x, int32_t y, uint32_t c)
     p[3] = c;
     p += WIDTH;
     p[2] = c;
-
-    hud_surface_damage(x - 2, y - 2, 5, 5);
-    hud_surface_commit();
 }
 
 
@@ -193,8 +236,6 @@ void draw_box_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 
     draw_hline_c(x, y, w, c);
     draw_hline_c(x, h - 1, w, c);
-
-    // hud_surface_damage(x, y, w, h);
 }
 
 
@@ -204,4 +245,46 @@ void draw_box(int32_t x, int32_t y, int32_t w, int32_t h)
 }
 
 
-void draw_circle(void) {}
+void draw_circle_c(int32_t x, int32_t y, int32_t w, uint32_t c)
+{
+    LOG_D("draw circle %i %i %i \n", x, y, w);
+
+    float hw = (w / 2.0) - 0.5;
+    for (int i = 0; i < w; i++) {
+        for (int j = 0; j < w; j++) {
+            float di = (i - hw);
+            float dj = (j - hw);
+            float mix = sqrtf(di * di + dj * dj) - hw + 0.5;
+            draw_pixel_mix(i + x, j + y, mix, c);
+        }
+    }
+}
+
+
+void draw_circle(int32_t x, int32_t y, int32_t w)
+{
+    return draw_circle_c(x, y, w, 0xff000000);
+}
+
+
+void draw_circle_radius_c(int32_t x, int32_t y, int32_t r, uint32_t c)
+{
+    LOG_D("draw circle %i %i %i \n", x, y, r);
+    int32_t ax = x - r;
+    int32_t ay = y - r;
+    for (int i = 0; i < r * 2; i++) {
+        for (int j = 0; j < r * 2; j++) {
+            float di = (i - r - 0.5);
+            float dj = (j - r - 0.5);
+            float mix = sqrtf(di * di + dj * dj) - r ;
+            draw_pixel_mix(i + ax, j + ay, mix, c);
+        }
+    }
+}
+
+
+void draw_circle_radius(int32_t x, int32_t y, int32_t w)
+{
+    return draw_circle_radius_c(x, y, w, 0xff000000);
+}
+

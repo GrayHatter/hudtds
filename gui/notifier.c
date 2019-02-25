@@ -67,6 +67,7 @@ struct ui_panel notifier = {
     .draw = draw_notifier,
     .pos_x = 0,
     .pos_y = 0,
+    .height = 35,
     .children = (struct ui_panel*[]){
         &notifications,
         &time_date,
