@@ -25,11 +25,23 @@ struct audio_track {
     char *filename;
     char *dirname;
 
-    char *md_album_artist;
-    char *md_artist;
+    int artist_id;
+    int album_artist_id;
     char *md_title;
     char *md_album;
     char *md_genre;
+};
+
+
+struct artist_data {
+    int length;
+    char *name;
+};
+
+struct artist_db {
+    int count;
+    int capacity;
+    struct artist_data *data;
 };
 
 
@@ -39,6 +51,9 @@ void audio_thread_start(void);
 
 struct audio_track *audio_track_get_current(void);
 struct music_db *audio_db_get(void);
+
+const char *track_artist_get(const int id);
+
 
 int audio_track_add_metadata(struct audio_track *track);
 void audio_track_free_metadata(struct audio_track *track);

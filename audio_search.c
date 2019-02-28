@@ -102,13 +102,15 @@ static struct music_dir *search_dir(const char *dirname)
                             return NULL;
                         }
                     } else {
-                        struct audio_track *next = realloc(thisdir->tracks, sizeof (struct audio_track) * (thisdir->track_count + 1));
+                        struct audio_track *next = realloc(thisdir->tracks,
+                            sizeof (struct audio_track) * (thisdir->track_count + 1));
                         if (!next) {
                             free(filename);
                             return NULL;
                         }
                         thisdir->tracks = next;
                     }
+                    memset(&thisdir->tracks[thisdir->track_count], 0, sizeof (struct audio_track));
                     thisdir->tracks[thisdir->track_count].filename = strdup(entry->d_name);
                     thisdir->tracks[thisdir->track_count++].dirname = strdup(dirname);
                     thisdir->total_track_count++;
@@ -119,7 +121,8 @@ static struct music_dir *search_dir(const char *dirname)
                 if (child) {
                     thisdir = ensure_dir(thisdir);
                     if (child->dir_count || child->track_count) {
-                        struct music_dir *next = realloc(thisdir->subdirs, sizeof (struct music_dir) * (thisdir->dir_count + 1));
+                        struct music_dir *next = realloc(thisdir->subdirs,
+                            sizeof (struct music_dir) * (thisdir->dir_count + 1));
                         if (!next) {
                             free(filename);
                             return NULL;
@@ -183,19 +186,20 @@ void *find_files_thread(void *db_)
     LOG_D("subdir count %i\n", db->dirs[0].dir_count);
     LOG_D("subdir track count %i\n", db->dirs[0].track_count);
     LOG_D("subdir track 0 name %s\n", db->dirs[0].tracks[0].filename);
-    LOG_D("subdir track 0 location %s\n", expand_dirname(db->dirs[0].dirname, db->dirs[0].tracks[0].filename));
+    // LOG_D("subdir track 0 location %s\n", expand_dirname(db->dirs[0].dirname, db->dirs[0].tracks[0].filename));
 
 
     db->search_done = true;
     postmsg_audio(AMSG_TRACK_SCAN_DONE, db);
 
-    struct audio_track *track;
-    uint32_t pos = 0;
-    while ((track = find_track(pos++, db->dirs))) {
-        audio_track_add_metadata(track);
-        struct timespec __ts_nanosleep = { .tv_nsec = _10_mSECS };
-        nanosleep(&__ts_nanosleep, NULL);
-    }
+    // struct timespec __ts_nanosleep = { .tv_nsec = _10_mSECS };
+    // struct audio_track *track;
+    // uint32_t pos = 0;
+
+    // while ((track = find_track(pos++, db->dirs))) {
+    //     audio_track_add_metadata(track);
+    //     nanosleep(&__ts_nanosleep, NULL);
+    // }
     return NULL;
 }
 

@@ -1,4 +1,4 @@
-#include "gps.h"
+#include "gps_gui.h"
 
 #include "../wl/ui.h"
 #include "../wl/text.h"
@@ -45,16 +45,16 @@ static void draw_gps_data(struct ui_panel *p, int32_t x, int32_t y, int32_t w, i
     text_draw_string(str, x + 2, y + 30);
 
     snprintf(str, sizeof str, "ALT: %lf", data->alt);
-    text_draw_string(str, x + 2, y + 40);
+    text_draw_string(str, x + 2, y + 50);
 
-    snprintf(str, sizeof str, "Ground Speed: %lf", data->gnd_speed);
-    text_draw_string(str, x + 2, y + 80);
+    snprintf(str, sizeof str, "Ground Speed: %.2lf", data->gnd_speed);
+    text_draw_string(str, x + 2, y + 90);
 
-    snprintf(str, sizeof str, "Climb Speed: %lf", data->vert_speed);
-    text_draw_string(str, x + 2, y + 100);
+    snprintf(str, sizeof str, "Climb Speed: %.2lf", data->vert_speed);
+    text_draw_string(str, x + 2, y + 120);
 
     snprintf(str, sizeof str, "Satellites: %i (%i)", data->satellites_visible, data->satellites_used);
-    text_draw_string(str, x + 2, y + 130);
+    text_draw_string(str, x + 2, y + 150);
 
     free(data);
 }

@@ -188,6 +188,7 @@ bool ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
         }
     }
 
+    LOG_T("ui panel draw done %s\n", panel->name);
     return redraw;
 }
 

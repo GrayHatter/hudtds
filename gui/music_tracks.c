@@ -45,14 +45,16 @@ static const char *entry_text(struct audio_track *t)
         audio_track_add_metadata(t);
     }
 
-    if (t->md_album_artist) {
-        pos += snprintf(str, 2048, "%s - ", t->md_album_artist);
-    } else if (t->md_artist) {
-        pos += snprintf(str, 2048, "%s - ", t->md_artist);
+    if (t->album_artist_id >= 0) {
+        pos += snprintf(str, 2048, "%s - ", track_artist_get(t->album_artist_id));
+    } else if (t->artist_id >= 0) {
+        pos += snprintf(str, 2048, "%s - ", track_artist_get(t->artist_id));
     }
 
     if (t->md_title) {
         pos += snprintf(str + pos, 2048 - pos, "%s", t->md_title);
+    } else {
+        pos += snprintf(str + pos, 2048 - pos, "%s", t->filename);
     }
 
     if (pos == 0) {

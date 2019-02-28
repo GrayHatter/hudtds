@@ -3,7 +3,7 @@
 #include "notifier.h"
 #include "music.h"
 #include "nav.h"
-#include "gps.h"
+#include "gps_gui.h"
 // #include "onscreenkeys.h"
 
 #include "../wl/keyboard.h"

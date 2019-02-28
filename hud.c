@@ -35,8 +35,8 @@ int main(void)
     init_wayland();
     LOG_D("wl init done\n");
 
-    // LOG_D("Starting Audio Thread\n");
-    // audio_thread_start();
+    LOG_D("Starting Audio Thread\n");
+    audio_thread_start();
 
     LOG_D("Starting GPS Thread\n");
     gps_thread_start();

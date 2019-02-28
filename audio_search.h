@@ -1,5 +1,5 @@
-#ifndef _HUD_AUDIO_SEARCH_H_
-#define _HUD_AUDIO_SEARCH_H_
+#ifndef _HUDTDS_AUDIO_SEARCH_H_
+#define _HUDTDS_AUDIO_SEARCH_H_
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -40,4 +40,4 @@ void *find_files_thread(void *db);
 struct audio_track *find_track(uint32_t pos, struct music_dir *dir);
 
 
-#endif // _HUD_AUDIO_SEARCH_H_
+#endif // _HUDTDS_AUDIO_SEARCH_H_

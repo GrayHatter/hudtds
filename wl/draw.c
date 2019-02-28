@@ -92,7 +92,7 @@ static inline uint32_t *get_pixel(int32_t x, int32_t y)
 }
 
 
-static uint8_t calculate_mix_8(uint8_t old, uint8_t new, float mix)
+static uint8_t calculate_mix_8(uint8_t old, uint8_t new, double mix)
 {
     if (old > new) {
         return old - ((old - new) * (1.0 - mix));
@@ -102,7 +102,7 @@ static uint8_t calculate_mix_8(uint8_t old, uint8_t new, float mix)
 }
 
 
-static uint32_t calculate_mix_32(uint32_t old, uint32_t new, float mix)
+static uint32_t calculate_mix_32(uint32_t old, uint32_t new, double mix)
 {
     return 0xff000000
           | calculate_mix_8(old >> 16, new >> 16, mix) << 16
@@ -130,7 +130,7 @@ bool draw_pixel(int32_t x, int32_t y, uint32_t c)
 }
 
 
-bool draw_pixel_mix(int32_t x, int32_t y, float mix, uint32_t c)
+bool draw_pixel_mix(int32_t x, int32_t y, double mix, uint32_t c)
 {
     if ((clip_box.set
             && (x < clip_box.x
@@ -249,12 +249,12 @@ void draw_circle_c(int32_t x, int32_t y, int32_t w, uint32_t c)
 {
     LOG_D("draw circle %i %i %i \n", x, y, w);
 
-    float hw = (w / 2.0) - 0.5;
+    double hw = (w / 2.0) - 0.5;
     for (int i = 0; i < w; i++) {
         for (int j = 0; j < w; j++) {
-            float di = (i - hw);
-            float dj = (j - hw);
-            float mix = sqrtf(di * di + dj * dj) - hw + 0.5;
+            double di = (i - hw);
+            double dj = (j - hw);
+            double mix = sqrtf(di * di + dj * dj) - hw + 0.5;
             draw_pixel_mix(i + x, j + y, mix, c);
         }
     }
@@ -267,16 +267,17 @@ void draw_circle(int32_t x, int32_t y, int32_t w)
 }
 
 
-void draw_circle_radius_c(int32_t x, int32_t y, int32_t r, uint32_t c)
+void draw_circle_radius_c(int32_t x, int32_t y, int32_t radius, uint32_t c)
 {
-    LOG_D("draw circle %i %i %i \n", x, y, r);
+    LOG_D("draw circle %i %i %i \n", x, y, radius);
+    double r = radius - 0.5;
     int32_t ax = x - r;
     int32_t ay = y - r;
     for (int i = 0; i < r * 2; i++) {
         for (int j = 0; j < r * 2; j++) {
-            float di = (i - r - 0.5);
-            float dj = (j - r - 0.5);
-            float mix = sqrtf(di * di + dj * dj) - r ;
+            double di = i - r;
+            double dj = j - r;
+            double mix = sqrtf(di * di + dj * dj) - r + 0.5;
             draw_pixel_mix(i + ax, j + ay, mix, c);
         }
     }

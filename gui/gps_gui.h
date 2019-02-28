@@ -3,5 +3,4 @@
 
 extern struct ui_panel gps_frame;
 
-
 #endif // _HUDTDS_GUI_GPS_

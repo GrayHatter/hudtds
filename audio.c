@@ -10,10 +10,6 @@
 #include <string.h>
 #include <time.h>
 
-#define u_int8_t uint8_t
-#define u_int16_t uint16_t
-#define u_int32_t uint32_t
-#define u_int64_t uint64_t
 #include <alsa/asoundlib.h>
 
 #include <libavutil/common.h>
@@ -148,7 +144,6 @@ static AVFormatContext *open_audio_track(char *filename, bool debug, int *stream
 
 static AVCodecContext *init_codec(AVCodecContext *ctx, AVDictionary **metadata)
 {
-
     LOG_D("getting codec\n");
     AVCodec *codec = avcodec_find_decoder(ctx->codec_id);
     // AVCodec *codec = avcodec_find_decoder(CODEC_ID_MP3);
@@ -294,6 +289,7 @@ static void *playback_thread(void *d)
     return NULL;
 }
 
+
 static void *audio_thread(void *p)
 {
     (void) p;
@@ -410,14 +406,85 @@ static void *audio_thread(void *p)
 }
 
 
+static struct artist_db *artist_db = NULL;
+
+
+static int push_artist(const char *name)
+{
+    // TODO check for unused locations so array can shrink with deletions
+
+    if (!name) {
+        return -2;
+    }
+
+    int name_length = strlen(name);
+    if (name_length == 0) {
+        LOG_E("artist push Name length shouldn't be 0\n");
+        return -2;
+    }
+
+    for (int i = 0; i < artist_db->count; i++) {
+        if (artist_db->data[i].length != name_length) {
+            continue;
+        }
+
+        if (strcmp(name, artist_db->data[i].name) == 0) {
+            return i;
+        }
+    }
+
+    if (artist_db->count >= artist_db->capacity) {
+        struct artist_data *next = realloc(artist_db->data, sizeof(struct artist_data) * (artist_db->capacity + 10));
+        if (!next) {
+            LOG_F("Realloc failed for push artist %s", name);
+            exit(2);
+        }
+        artist_db->data = next;
+        artist_db->capacity += 10;
+    }
+
+    artist_db->data[artist_db->count].length = name_length;
+    artist_db->data[artist_db->count].name = strdup(name);
+    if (!artist_db->data[artist_db->count].name) {
+        LOG_E("Strdup failed in push_artist\n");
+        exit(2);
+    }
+
+    artist_db->count++;
+    return artist_db->count - 1;
+
+    return -1;
+}
+
+
+const char *track_artist_get(const int id)
+{
+    if (id < 0 || id >= artist_db->count) {
+        return NULL;
+    }
+
+    return artist_db->data[id].name;
+}
+
+
 int audio_track_add_metadata(struct audio_track *track)
 {
-    LOG_T("Trying to add metadata for track\n");
+    LOG_T("Trying to add metadata for track ");
+    if (!track) {
+        LOG_W("Track give was null\n");
+        return 0;
+    }
 
     if (!track->dirname || !track->filename) {
         return -1;
     }
+    LOG_T("dirname %s, filename %s\n", track->dirname, track->filename);
+
     char *dirname  = expand_dirname(track->dirname, track->filename);
+    if (!dirname) {
+        LOG_F("Unable to expand dirname for track %s\n", track->filename);
+        exit(2);
+    }
 
     AVFormatContext *file = avformat_alloc_context();
     if (avformat_open_input(&file, dirname, NULL, NULL) < 0) {
@@ -428,18 +495,19 @@ int audio_track_add_metadata(struct audio_track *track)
 
     AVDictionaryEntry *dict = NULL;
     if ((dict = av_dict_get(file->metadata, "album_artist", NULL, 0))) {
-        track->md_album_artist = strdup(dict->value);
+        track->album_artist_id = push_artist(dict->value);
     } else if ((dict = av_dict_get(file->metadata, "artist", NULL, 0))) {
-        track->md_album_artist = strdup(dict->value);
+        track->album_artist_id = push_artist(dict->value);
     }
 
     if ((dict = av_dict_get(file->metadata, "artist", NULL, 0))) {
-        track->md_artist = strdup(dict->value);
+        track->artist_id = push_artist(dict->value);
     } else {
-        track->md_artist = track->md_album_artist;
+        track->artist_id = track->album_artist_id;
     }
 
     if ((dict = av_dict_get(file->metadata, "title", NULL, 0))) {
+        LOG_E("%s title %s\n", track->filename, dict->value);
         track->md_title = strdup(dict->value);
     }
 
@@ -455,23 +523,14 @@ int audio_track_add_metadata(struct audio_track *track)
 
     avformat_close_input(&file);
     avformat_free_context(file);
+    free(dirname);
+    LOG_T("metadata complete\n");
     return 0;
 }
 
 
 void audio_track_free_metadata(struct audio_track *track)
 {
-    if (track->md_album_artist) {
-        if (track->md_album_artist == track->md_artist) {
-            track->md_artist = NULL;
-        } else if (track->md_artist) {
-            free(track->md_artist);
-            track->md_artist = NULL;
-        }
-        free(track->md_album_artist);
-        track->md_album_artist = NULL;
-    }
-
     if (track->md_title) {
         free(track->md_title);
         track->md_title = NULL;
@@ -516,6 +575,12 @@ static void audio_init(void)
 
     LOG_T("init pcm\n");
     init_pcm();
+
+    artist_db = calloc(1, sizeof (struct artist_db));
+    if (!artist_db) {
+        LOG_F("artist_db Calloc failed\n");
+        exit(2);
+    }
 }
 
 
