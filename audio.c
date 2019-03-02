@@ -32,9 +32,7 @@
 
 #define _10_mSECS 1000 * 1000 * 10
 #define _10_uSECS 1000 * 10
-
 #define _100_uSECS 1000 * 100
-
 
 #define DEFAULT_CHANNELS    2
 #define DEFAULT_SAMPLE_FMT  AV_SAMPLE_FMT_S16
@@ -43,11 +41,15 @@
 static char *device = "default";
 static snd_pcm_format_t pcm_format = SND_PCM_FORMAT_S16;
 static snd_pcm_t *pcm;
+static struct track_data *current_track = NULL;
 
 
-static struct audio_track *current_track = NULL;
-// static struct music_dir *music_dir = NULL;
-static struct music_db *m_db = NULL;
+struct playback_data {
+    struct track_data *track;
+    bool running;
+    bool paused;
+    bool clean_exit;
+};
 
 
 static void init_pcm(void)
@@ -64,8 +66,6 @@ static void init_pcm(void)
         LOG_E("Playback open error: %s\n", snd_strerror(snd_err));
         return;
     }
-
-
     return;
 }
 
@@ -93,7 +93,6 @@ static int pcm_play(uint8_t *buffer, long count)
 
 static AUDIO_MSG next_amsg_msg = 0;
 static void *next_amsg_data = NULL;
-
 void postmsg_audio(AUDIO_MSG msg, void *data)
 {
     if (msg && next_amsg_msg) {
@@ -106,7 +105,7 @@ void postmsg_audio(AUDIO_MSG msg, void *data)
 }
 
 
-static AVFormatContext *open_audio_track(char *filename, bool debug, int *stream_id)
+static AVFormatContext *open_audio_track(char *filename, int *stream_id)
 {
     LOG_D("getting format context\n");
     AVFormatContext *fcontext = avformat_alloc_context();
@@ -119,10 +118,6 @@ static AVFormatContext *open_audio_track(char *filename, bool debug, int *stream
     if (avformat_find_stream_info(fcontext, NULL) < 0){
         LOG_E("Could not find file info\n");
         return NULL;
-    }
-
-    if (debug || 1) {
-        av_dump_format(fcontext, 0, filename, false);
     }
 
     LOG_D("searching streams\n");
@@ -163,40 +158,33 @@ static AVCodecContext *init_codec(AVCodecContext *ctx, AVDictionary **metadata)
 }
 
 
-struct playback_data {
-    struct audio_track *track;
-    bool running;
-    bool paused;
-    bool clean_exit;
-};
-
-
 #define AUDIO_BUF_SIZE 20480
 static void *playback_thread(void *d)
 {
     struct playback_data *data = d;
 
     LOG_N("Playing %s\n", data->track->filename);
-    char *dirname  = expand_dirname(data->track->dirname, data->track->filename);
-    LOG_N("location %s\n", dirname);
+
+    const struct directory_data *dir = find_dir(data->track->dir_id, NULL);
+    char *filename  = expand_dirname(dir->dirname, data->track->filename);
+    LOG_N("location %s\n", filename);
 
     int stream_id = -1;
-    AVFormatContext *fcon = open_audio_track(dirname, false, &stream_id);
+    // So... I'm pretty sure filename only needs to exist until this function returns
+    // if you get odd crashes... that obviously not correct!
+    AVFormatContext *fcon = open_audio_track(filename, &stream_id);
     if (!fcon) {
         data->clean_exit = true;
-        free(dirname);
+        free(filename);
         return NULL;
     }
-
-    if (!data->track->file_read) {
-        audio_track_add_metadata(data->track);
-    }
+    free(filename);
+    filename = NULL;
 
     AVCodecContext *c_ctx = init_codec(fcon->streams[stream_id]->codec, &fcon->metadata);
     if (!c_ctx) {
         LOG_E("Could not allocate init codec\n");
         data->clean_exit = true;
-        free(dirname);
         return NULL;
     }
 
@@ -212,7 +200,6 @@ static void *playback_thread(void *d)
     if (!avframe) {
         LOG_E("Could not allocate audio frame\n");
         data->clean_exit = true;
-        free(dirname);
         return NULL;
     }
 
@@ -225,7 +212,6 @@ static void *playback_thread(void *d)
     if (!swr) {
         LOG_E("SWR alloc set opts failed\n;");
         data->clean_exit = true;
-        free(dirname);
         return NULL;
     }
     swr_init(swr);
@@ -279,7 +265,6 @@ static void *playback_thread(void *d)
     LOG_E("files done\n");
 
     free(output);
-    free(dirname);
     avcodec_close(c_ctx);
     avformat_close_input(&fcon);
     avformat_free_context(fcon);
@@ -314,7 +299,7 @@ static void *audio_thread(void *p)
                 return NULL;
             }
             case AMSG_NONE: {
-                LOG_T("AMSG_THREAD UNHANDLED msg AMSG_NONE\n");
+                // LOG_T("AMSG_THREAD UNHANDLED msg AMSG_NONE\n");
                 break;
             }
             case AMSG_PLAY: {
@@ -389,7 +374,6 @@ static void *audio_thread(void *p)
             }
             case AMSG_TRACK_SCAN_DONE: {
                 LOG_N("AMSG Track Scan done!\n");
-                m_db = cur_data;
                 break;
             }
         }
@@ -403,150 +387,6 @@ static void *audio_thread(void *p)
     }
 
     return NULL;
-}
-
-
-static struct artist_db *artist_db = NULL;
-
-
-static int push_artist(const char *name)
-{
-    // TODO check for unused locations so array can shrink with deletions
-
-    if (!name) {
-        return -2;
-    }
-
-    int name_length = strlen(name);
-    if (name_length == 0) {
-        LOG_E("artist push Name length shouldn't be 0\n");
-        return -2;
-    }
-
-    for (int i = 0; i < artist_db->count; i++) {
-        if (artist_db->data[i].length != name_length) {
-            continue;
-        }
-
-        if (strcmp(name, artist_db->data[i].name) == 0) {
-            return i;
-        }
-    }
-
-    if (artist_db->count >= artist_db->capacity) {
-        struct artist_data *next = realloc(artist_db->data, sizeof(struct artist_data) * (artist_db->capacity + 10));
-        if (!next) {
-            LOG_F("Realloc failed for push artist %s", name);
-            exit(2);
-        }
-        artist_db->data = next;
-        artist_db->capacity += 10;
-    }
-
-    artist_db->data[artist_db->count].length = name_length;
-    artist_db->data[artist_db->count].name = strdup(name);
-    if (!artist_db->data[artist_db->count].name) {
-        LOG_E("Strdup failed in push_artist\n");
-        exit(2);
-    }
-
-    artist_db->count++;
-    return artist_db->count - 1;
-
-    return -1;
-}
-
-
-const char *track_artist_get(const int id)
-{
-    if (id < 0 || id >= artist_db->count) {
-        return NULL;
-    }
-
-    return artist_db->data[id].name;
-}
-
-
-int audio_track_add_metadata(struct audio_track *track)
-{
-    LOG_T("Trying to add metadata for track ");
-    if (!track) {
-        LOG_W("Track give was null\n");
-        return 0;
-    }
-
-    if (!track->dirname || !track->filename) {
-        return -1;
-    }
-    LOG_T("dirname %s, filename %s\n", track->dirname, track->filename);
-
-    char *dirname  = expand_dirname(track->dirname, track->filename);
-    if (!dirname) {
-        LOG_F("Unable to expand dirname for track %s\n", track->filename);
-        exit(2);
-    }
-
-    AVFormatContext *file = avformat_alloc_context();
-    if (avformat_open_input(&file, dirname, NULL, NULL) < 0) {
-        LOG_E("Could not open file\n");
-        free(dirname);
-        return -2;
-    }
-
-    AVDictionaryEntry *dict = NULL;
-    if ((dict = av_dict_get(file->metadata, "album_artist", NULL, 0))) {
-        track->album_artist_id = push_artist(dict->value);
-    } else if ((dict = av_dict_get(file->metadata, "artist", NULL, 0))) {
-        track->album_artist_id = push_artist(dict->value);
-    }
-
-    if ((dict = av_dict_get(file->metadata, "artist", NULL, 0))) {
-        track->artist_id = push_artist(dict->value);
-    } else {
-        track->artist_id = track->album_artist_id;
-    }
-
-    if ((dict = av_dict_get(file->metadata, "title", NULL, 0))) {
-        LOG_E("%s title %s\n", track->filename, dict->value);
-        track->md_title = strdup(dict->value);
-    }
-
-    if ((dict = av_dict_get(file->metadata, "album", NULL, 0))) {
-        track->md_album = strdup(dict->value);
-    }
-
-    if ((dict = av_dict_get(file->metadata, "genre", NULL, 0))) {
-        track->md_genre = strdup(dict->value);
-    }
-
-    track->file_read = true;
-
-    avformat_close_input(&file);
-    avformat_free_context(file);
-    free(dirname);
-    LOG_T("metadata complete\n");
-    return 0;
-}
-
-
-void audio_track_free_metadata(struct audio_track *track)
-{
-    if (track->md_title) {
-        free(track->md_title);
-        track->md_title = NULL;
-    }
-
-    if (track->md_album) {
-        free(track->md_album);
-        track->md_album = NULL;
-    }
-
-    if (track->md_genre) {
-        free(track->md_genre);
-        track->md_genre = NULL;
-    }
-
-    track->file_read = false;
 }
 
 
@@ -575,24 +415,12 @@ static void audio_init(void)
 
     LOG_T("init pcm\n");
     init_pcm();
-
-    artist_db = calloc(1, sizeof (struct artist_db));
-    if (!artist_db) {
-        LOG_F("artist_db Calloc failed\n");
-        exit(2);
-    }
 }
 
 
-struct audio_track *audio_track_get_current(void)
+struct track_data *audio_track_get_current(void)
 {
     return current_track;
-}
-
-
-struct music_db *audio_db_get(void)
-{
-    return m_db;
 }
 
 
@@ -602,10 +430,9 @@ void audio_thread_start(void)
 
     audio_init();
 
-    struct music_db *music_db = calloc(1, sizeof (struct music_db));
     pthread_t ms;
-    pthread_create(&ms, NULL, find_files_thread, music_db);
+    pthread_create(&ms, NULL, find_files_thread, NULL);
 
     pthread_t a;
-    pthread_create(&a, NULL, audio_thread, (void *)NULL);
+    pthread_create(&a, NULL, audio_thread, NULL);
 }

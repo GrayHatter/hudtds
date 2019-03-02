@@ -6,56 +6,21 @@
 #include "../wl/keyboard.h"
 
 #include "../log.h"
-#include "../audio.h"
 #include "../audio_search.h"
 
 #include <stdlib.h>
 
 
-static uint32_t cur_db_loc = 0;
+static uint32_t artist_skip = 0;
 
 
-static const struct track_data *track_get_pos(uint32_t pos)
+static const struct artist_data *artist_pos(uint32_t pos)
 {
-    pos += cur_db_loc;
-    return find_track(pos, NULL);
+    pos += artist_skip;
+
+    return find_artist(pos, NULL);
 }
 
-
-static const char *entry_text(const struct track_data *t)
-{
-    static char str[2048] = {0}; // because fuck memory safety!
-    if (!t) {
-        snprintf(str, 2048, "%s", "No Track Found");
-        return str;
-    }
-
-    int pos = 0;
-    if (t->file_read) {
-        if (t->album_artist_id >= 0) {
-            pos += snprintf(str, 2048, "%s - ", track_artist_name(t->album_artist_id));
-        } else if (t->artist_id >= 0) {
-            pos += snprintf(str, 2048, "%s - ", track_artist_name(t->artist_id));
-        }
-
-        if (t->md_title) {
-            pos += snprintf(str + pos, 2048 - pos, "%s", t->md_title);
-        } else {
-            pos += snprintf(str + pos, 2048 - pos, "%s", t->filename);
-        }
-    }
-
-    if (pos == 0) {
-        if (t->filename) {
-            snprintf(str, 2048, "file: %s", t->filename);
-            return str;
-        }
-
-        snprintf(str, 2048, "%s", "Unable to generate name");
-    }
-
-    return str;
-}
 
 
 static void draw_music_track(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int32_t h)
@@ -66,22 +31,22 @@ static void draw_music_track(struct ui_panel *p, int32_t x, int32_t y, int32_t w
     h = p->height <= 0 ? h + p->height : y + p->height; \
     draw_square_c(x, y, w, y + p->height, 0xff000000);
 
-    struct music_track_panel *music = (struct music_track_panel *)p;
+    struct music_track *music = (struct music_track *)p;
+    const struct artist_data *artist = artist_pos(music->position);
 
     // LOG_E("Draw music entry (track: %s), %i %i %i %i (%i)\n", music->track_title, x, y, w, h, y + p->height);
-    if (music_tracks_frame.focused && p->focused) {
+    if (music_artists_frame.focused && p->focused) {
         draw_box_c(x, y, w, y + p->height, p->color);
     }
 
-    const struct track_data *track = track_get_pos(music->position);
-    text_draw_string(entry_text(track), x + 3, y + 3);
+    text_draw_string(artist->name, x + 3, y + 3);
 }
 
 
-struct music_track_panel music_track_0 = {
+struct music_track music_artist_0 = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
-        .name = "music entry_0",
+        .name = "music artist_0",
         .draw = draw_music_track,
         .pos_x = 0,
         .pos_y = 0,
@@ -92,10 +57,10 @@ struct music_track_panel music_track_0 = {
     .position = 0
 };
 
-struct music_track_panel music_track_1 = {
+struct music_track music_artist_1 = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
-        .name = "music entry_1",
+        .name = "music artist_1",
         .draw = draw_music_track,
         .pos_x = 0,
         .pos_y = 40,
@@ -106,10 +71,10 @@ struct music_track_panel music_track_1 = {
     .position = 1
 };
 
-struct music_track_panel music_track_2 = {
+struct music_track music_artist_2 = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
-        .name = "music entry_2",
+        .name = "music artist_2",
         .draw = draw_music_track,
         .pos_x = 0,
         .pos_y = 80,
@@ -120,10 +85,10 @@ struct music_track_panel music_track_2 = {
     .position = 2
 };
 
-struct music_track_panel music_track_3 = {
+struct music_track music_artist_3 = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
-        .name = "music entry_3",
+        .name = "music artist_3",
         .draw = draw_music_track,
         .pos_x = 0,
         .pos_y = 120,
@@ -134,10 +99,10 @@ struct music_track_panel music_track_3 = {
     .position = 3
 };
 
-struct music_track_panel music_track_4 = {
+struct music_track music_artist_4 = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
-        .name = "music entry_4",
+        .name = "music artist_4",
         .draw = draw_music_track,
         .pos_x = 0,
         .pos_y = 160,
@@ -148,10 +113,10 @@ struct music_track_panel music_track_4 = {
     .position = 4
 };
 
-struct music_track_panel music_track_5 = {
+struct music_track music_artist_5 = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
-        .name = "music entry_5",
+        .name = "music artist_5",
         .draw = draw_music_track,
         .pos_x = 0,
         .pos_y = 200,
@@ -162,10 +127,10 @@ struct music_track_panel music_track_5 = {
     .position = 5
 };
 
-struct music_track_panel music_track_6 = {
+struct music_track music_artist_6 = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
-        .name = "music entry_6",
+        .name = "music artist_6",
         .draw = draw_music_track,
         .pos_x = 0,
         .pos_y = 240,
@@ -181,12 +146,12 @@ struct music_track_panel music_track_6 = {
 static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_t s)
 {
     (void) s;
-    struct music_track_panel **children = (struct music_track_panel**)p->children;
+    struct music_track **children = (struct music_track**)p->children;
 
     if (!children) {
         return false;
     }
-    struct music_track_panel *first = *children, *entry, *prev;
+    struct music_track *first = *children, *entry, *prev;
 
     while ((entry = *children++)) {
         if (entry->panel.focused) {
@@ -198,8 +163,8 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                         entry->panel.focused = false;
                     } else {
                         LOG_D("already at beginning\n");
-                        if (cur_db_loc) {
-                            cur_db_loc--;
+                        if (artist_skip) {
+                            artist_skip--;
                         }
                     }
                     break;
@@ -211,14 +176,16 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                         entry->panel.focused = false;
                     } else {
                         LOG_D("already at end\n");
-                        cur_db_loc++;
+                        artist_skip++;
                     }
                     break;
                 }
                 case MZD_KEYMAP_DPAD_CENTER: {
                     LOG_D("play this one %s\n", entry->panel.name);
-                    if (track_get_pos(entry->position)) {
-                        postmsg_audio(AMSG_PLAY, (void *)track_get_pos(entry->position));
+                    if (artist_pos(entry->position)) {
+                        // Set search value,
+                        // reset focus to tracks
+                        // postmsg_audio(AMSG_PLAY, artist_pos(entry->position));
                     } else {
                         LOG_E("No track found here %s\n", entry->panel.name);
                     }
@@ -242,22 +209,23 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
 }
 
 
-struct ui_panel music_tracks_frame = {
+struct ui_panel music_artists_frame = {
     .type = PANEL_LIST,
-    .name = "music entry frame",
+    .name = "music artist frame",
     .pos_x = 80,
     .pos_y = 60,
     .height = -80,
     .k_dn = frame_key_down,
-    .focused = true,
+    .focused = false,
+    .disabled = true,
     .children = (struct ui_panel*[]) {
-        (struct ui_panel*)&music_track_0,
-        (struct ui_panel*)&music_track_1,
-        (struct ui_panel*)&music_track_2,
-        (struct ui_panel*)&music_track_3,
-        (struct ui_panel*)&music_track_4,
-        (struct ui_panel*)&music_track_5,
-        (struct ui_panel*)&music_track_6,
+        (struct ui_panel*)&music_artist_0,
+        (struct ui_panel*)&music_artist_1,
+        (struct ui_panel*)&music_artist_2,
+        (struct ui_panel*)&music_artist_3,
+        (struct ui_panel*)&music_artist_4,
+        (struct ui_panel*)&music_artist_5,
+        (struct ui_panel*)&music_artist_6,
         NULL
     }
 };

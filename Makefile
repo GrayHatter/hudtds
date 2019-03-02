@@ -15,7 +15,7 @@ OBJ += audio.o audio_search.o
 
 OBJ += gui/root.o gui/nav.o gui/notifier.o gui/onscreenkeys.o
 OBJ += gui/gps_gui.o
-OBJ += gui/music.o gui/music_tracks.o gui/music_buttons.o
+OBJ += gui/music.o gui/music_tracks.o gui/music_buttons.o gui/music_artists.o gui/music_albums.o
 
 
 

@@ -7,6 +7,16 @@
 #include "../wl/keyboard.h"
 
 
+static void music_btn_disable_all(void)
+{
+    music_tracks_frame.disabled = true;
+    music_tracks_frame.focused = false;
+    music_artists_frame.disabled = true;
+    music_artists_frame.focused = false;
+
+    music_buttons_frame.focused = false;
+}
+
 
 static bool music_btn_tracks(struct ui_panel *p, const int mx, const int my, const int x, const int y, const uint32_t w, uint32_t h,
     const uint32_t id, const uint32_t serial)
@@ -20,7 +30,11 @@ static bool music_btn_tracks(struct ui_panel *p, const int mx, const int my, con
     (void) h;
     (void) id;
     (void) serial;
-    LOG_E("Music show tracks\n");
+    LOG_N("Music show tracks\n");
+
+    music_btn_disable_all();
+    music_tracks_frame.disabled = false;
+    music_tracks_frame.focused = true;
     return true;
 }
 
@@ -37,7 +51,15 @@ static bool music_btn_artists(struct ui_panel *p, const int mx, const int my, co
     (void) h;
     (void) id;
     (void) serial;
-    LOG_E("Music Show artists\n");
+    LOG_N("Music Show artists\n");
+
+    music_btn_disable_all();
+    music_artists_frame.disabled = false;
+    music_artists_frame.focused = true;
+
+    music_btn_disable_all();
+    music_artists_frame.disabled = false;
+    music_artists_frame.focused = true;
     return true;
 }
 
@@ -54,7 +76,11 @@ static bool music_btn_albums(struct ui_panel *p, const int mx, const int my, con
     (void) h;
     (void) id;
     (void) serial;
-    LOG_E("Music Show Albums\n");
+    LOG_N("Music Show Albums\n");
+
+    music_btn_disable_all();
+    music_albums_frame.disabled = false;
+    music_albums_frame.focused = true;
     return true;
 }
 
@@ -142,9 +168,6 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                         entry->panel.focused = false;
                     } else {
                         LOG_D("already at beginning\n");
-                        // if (cur_db_loc) {
-                        //     cur_db_loc--;
-                        // }
                     }
                     break;
                 }
@@ -155,17 +178,11 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                         entry->panel.focused = false;
                     } else {
                         LOG_D("already at end\n");
-                        // cur_db_loc++;
                     }
                     break;
                 }
                 case MZD_KEYMAP_DPAD_CENTER: {
                     LOG_D("play this one %s\n", entry->panel.name);
-                    // if (track_pos_get(entry->position)) {
-                    //     postmsg_audio(AMSG_PLAY, track_pos_get(entry->position));
-                    // } else {
-                    //     LOG_E("No track found here %s\n", entry->panel.name);
-                    // }
                     break;
                 }
                 default: {

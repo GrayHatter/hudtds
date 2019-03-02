@@ -27,7 +27,7 @@ static void draw_music_playing(struct ui_panel *p, int32_t x, int32_t y, int32_t
         draw_square_c(x, y, w, y + p->height, 0xff111111);
     }
 
-    struct audio_track *track = audio_track_get_current();
+    struct track_data *track = audio_track_get_current();
     if (track) {
         text_draw_string(track->filename, x + 3, y + 3);
     } else {
@@ -52,7 +52,7 @@ static bool music_playing_kdn(struct ui_panel *p, const uint32_t key, const uint
 
 
 
-struct music_track music_track_playing = {
+struct music_track_panel music_track_playing = {
     .panel = {
         .type = PANEL_LIST_ENTRY,
         .name = "music entry playing",
@@ -135,6 +135,8 @@ struct ui_panel music_frame = {
         (struct ui_panel*)&music_track_playing,
         (struct ui_panel*)&music_buttons_frame,
         (struct ui_panel*)&music_tracks_frame,
+        (struct ui_panel*)&music_artists_frame,
+        (struct ui_panel*)&music_albums_frame,
         NULL
     }
 };
