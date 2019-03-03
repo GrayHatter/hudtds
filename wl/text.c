@@ -42,7 +42,7 @@ void init_text(void)
 }
 
 
-void text_draw_string(const char *string, int32_t x, int32_t y)
+void text_draw_string(const char *string, uint32_t x, uint32_t y)
 {
     if (!string) {
         return;
@@ -63,10 +63,8 @@ void text_draw_string(const char *string, int32_t x, int32_t y)
 }
 
 
-void text_draw_string_width(const char *string, int32_t x, int32_t y, int32_t w)
+void text_draw_string_width(const char *string, uint32_t x, uint32_t y, uint32_t w)
 {
-    (void) w;
-
     if (!string) {
         return;
     }
@@ -77,7 +75,11 @@ void text_draw_string_width(const char *string, int32_t x, int32_t y, int32_t w)
         glyph_index = FT_Get_Char_Index(face, string[i]);
         FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
         FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-        draw_char(&face->glyph->bitmap, x + face->glyph->bitmap_left, y - face->glyph->bitmap_top);
+
+        if (x + face->glyph->bitmap_left + face->glyph->bitmap.width < w) {
+            draw_char(&face->glyph->bitmap, x + face->glyph->bitmap_left, y - face->glyph->bitmap_top);
+        }
+
         x += face->glyph->advance.x >> 6;
     }
 }

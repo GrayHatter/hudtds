@@ -52,17 +52,16 @@ static bool music_playing_kdn(struct ui_panel *p, const uint32_t key, const uint
 
 
 
-struct music_track_panel music_track_playing = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music entry playing",
-        .draw = draw_music_playing,
-        .k_dn = music_playing_kdn,
-        .pos_x = 0,
-        .pos_y = 0,
-        .height = 60,
-        .touch_focus = true,
-    },
+struct ui_panel music_track_playing = {
+    .type = PANEL_LIST_ENTRY,
+    .name = "music entry playing",
+    .draw = draw_music_playing,
+    .k_dn = music_playing_kdn,
+    .pos_x = 0,
+    .pos_y = 0,
+    .height = 60,
+    .touch_focus = true,
+    .order = 0,
 };
 
 
@@ -74,10 +73,10 @@ static bool frame_key_down_main(struct ui_panel *panel, const uint32_t key, cons
     switch (key) {
         case MZD_KEYMAP_DPAD_UP: {
             LOG_T("music_frame_keydown dpad up\n");
-            if (music_track_playing.panel.focused == true) {
+            if (music_track_playing.focused == true) {
                 return false;
             } else {
-                music_track_playing.panel.focused = true;
+                music_track_playing.focused = true;
                 music_buttons_frame.focused = false;
                 music_tracks_frame.focused = false;
                 return true;
@@ -89,7 +88,7 @@ static bool frame_key_down_main(struct ui_panel *panel, const uint32_t key, cons
                 return false;
             } else {
                 music_tracks_frame.focused = true;
-                music_track_playing.panel.focused = false;
+                music_track_playing.focused = false;
                 music_buttons_frame.focused = false;
                 return true;
             }
@@ -100,7 +99,7 @@ static bool frame_key_down_main(struct ui_panel *panel, const uint32_t key, cons
                 return false;
             } else {
                 music_buttons_frame.focused = true;
-                music_track_playing.panel.focused = false;
+                music_track_playing.focused = false;
                 music_tracks_frame.focused = false;
                 return true;
             }
@@ -111,7 +110,7 @@ static bool frame_key_down_main(struct ui_panel *panel, const uint32_t key, cons
                 return false;
             } else {
                 music_tracks_frame.focused = true;
-                music_track_playing.panel.focused = false;
+                music_track_playing.focused = false;
                 music_buttons_frame.focused = false;
                 return true;
             }
@@ -133,8 +132,8 @@ struct ui_panel music_frame = {
 
     .children = (struct ui_panel*[]) {
         (struct ui_panel*)&music_track_playing,
-        (struct ui_panel*)&music_buttons_frame,
         (struct ui_panel*)&music_tracks_frame,
+        (struct ui_panel*)&music_buttons_frame,
         (struct ui_panel*)&music_artists_frame,
         (struct ui_panel*)&music_albums_frame,
         NULL

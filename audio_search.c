@@ -37,6 +37,7 @@ static struct track_data *track_get(int id)
     return &m_db->track_db.data[id];
 }
 
+
 static struct directory_data *directory_get(int id)
 {
     return &m_db->dir_db.data[id];
@@ -415,9 +416,9 @@ void *find_files_thread(void *p)
 
     struct timespec __ts_nanosleep = { .tv_nsec = _10_mSECS };
     const struct track_data *track;
-    uint32_t pos = 0;
-
-    while ((track = track_get(pos++))) {
+    int pos = 0;
+    while (pos < m_db->track_db.count) {
+        track = track_get(pos++);
         metadata_add((struct track_data *)track);
         nanosleep(&__ts_nanosleep, NULL);
     }

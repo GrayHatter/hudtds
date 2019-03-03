@@ -52,7 +52,7 @@ LIBS   +=  -lffi -ldl -lrt -lpthread -lm
 
 %.o: %.c %.h
 	@# $(CC) -v -g -c $(CFLAGS) $< -o $@
-	@$(CC) -c  $(CFLAGS) $< -o $@
+	$(CC) -c  $(CFLAGS) $< -o $@
 
 
 hudtds: $(OBJ)

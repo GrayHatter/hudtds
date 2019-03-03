@@ -149,23 +149,21 @@ struct ui_panel music_btn_3 = {
 static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_t s)
 {
     (void) s;
-    (void) key;
-    struct music_track **children = (struct music_track**)p->children;
 
+    struct ui_panel **children = p->children;
     if (!children) {
         return false;
     }
 
-    struct music_track *first = *children, *entry, *prev;
-
+    struct ui_panel *first = *children, *entry, *prev;
     while ((entry = *children++)) {
-        if (entry->panel.focused) {
+        if (entry->focused) {
             switch (key) {
                 case MZD_KEYMAP_ROTATE_LEFT: {
                     if (entry != first) {
                         LOG_T("move to prev\n");
-                        prev->panel.focused = true;
-                        entry->panel.focused = false;
+                        prev->focused = true;
+                        entry->focused = false;
                     } else {
                         LOG_D("already at beginning\n");
                     }
@@ -173,16 +171,16 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                 }
                 case MZD_KEYMAP_ROTATE_RIGHT: {
                     if (*children) {
-                        LOG_T("move to next %s\n", (*children)->panel.name);
-                        (*children)->panel.focused = true;
-                        entry->panel.focused = false;
+                        LOG_T("move to next %s\n", (*children)->name);
+                        (*children)->focused = true;
+                        entry->focused = false;
                     } else {
                         LOG_D("already at end\n");
                     }
                     break;
                 }
                 case MZD_KEYMAP_DPAD_CENTER: {
-                    LOG_D("play this one %s\n", entry->panel.name);
+                    LOG_D("play this one %s\n", entry->name);
                     break;
                 }
                 default: {
@@ -198,7 +196,7 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
     }
 
     LOG_D("focus not found\n");
-    first->panel.focused = true;
+    first->focused = true;
     return false;
 }
 
@@ -206,7 +204,7 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
 struct ui_panel music_buttons_frame = {
     .type = PANEL_LIST,
     .name = "music entry frame",
-    .pos_x = 0,
+    .pos_x = -80,
     .pos_y = 60,
     .height = -80,
     .k_dn = frame_key_down,

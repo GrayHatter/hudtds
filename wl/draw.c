@@ -196,7 +196,6 @@ void draw_vline_c(int32_t x, int32_t y, int32_t h, uint32_t c)
 
     for (int32_t rem = h - y; rem > 0; rem--) {
         P(x, y + rem, c);
-        P(x + 1, y + rem, c);
     }
 }
 
@@ -207,7 +206,6 @@ void draw_hline_c(int32_t x, int32_t y, int32_t w, uint32_t c)
 
     for (int rem = w - x; rem > 0; rem--) {
         P(x + rem, y, c);
-        P(x + rem, y + 1, c);
     }
 }
 
@@ -228,14 +226,31 @@ void draw_square(int32_t x, int32_t y, int32_t w, int32_t h)
 }
 
 
+void draw_box_depth_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t d, uint32_t c)
+{
+    LOG_D("draw box %i %i %i %i \n", x, y, w, h);
+    for (uint32_t i = 0; i < d; i++) {
+        draw_hline_c(x, y + i, w , c);
+
+        draw_vline_c(x + i, y, h, c);
+        draw_vline_c(w - i, y, h, c);
+
+        draw_hline_c(x, h - i, w, c);
+    }
+}
+
+
+void draw_box_depth(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t d)
+{
+    return draw_box_depth_c(x, y, w, h, d, 0xff000000);
+}
+
+
+
 void draw_box_c(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t c)
 {
     LOG_D("draw box %i %i %i %i \n", x, y, w, h);
-    draw_vline_c(x, y, h, c);
-    draw_vline_c(w - 1, y, h, c);
-
-    draw_hline_c(x, y, w, c);
-    draw_hline_c(x, h - 1, w, c);
+    draw_box_depth_c(x, y, w, h, 2, c);
 }
 
 

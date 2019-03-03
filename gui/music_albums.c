@@ -30,8 +30,7 @@ static void draw_music_album(struct ui_panel *p, int32_t x, int32_t y, int32_t w
     h = p->height <= 0 ? h + p->height : y + p->height; \
     draw_square_c(x, y, w, y + p->height, 0xff000000);
 
-    struct music_track *music = (struct music_track *)p;
-    const struct album_data *album = album_pos(music->position);
+    const struct album_data *album = album_pos(p->order);
 
     // LOG_E("Draw music entry (track: %s), %i %i %i %i (%i)\n", music->track_title, x, y, w, h, y + p->height);
     if (music_albums_frame.focused && p->focused) {
@@ -42,102 +41,88 @@ static void draw_music_album(struct ui_panel *p, int32_t x, int32_t y, int32_t w
 }
 
 
-struct music_track album_0 = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music album_0",
-        .draw = draw_music_album,
-        .pos_x = 0,
-        .pos_y = 0,
-        .height = 40,
-        .color = 0xffff0000,
-        .children = NULL,
-    },
-    .position = 0
+struct ui_panel album_0 = {
+    .type = PANEL_LIST_ENTRY,
+    .name = "music album_0",
+    .draw = draw_music_album,
+    .pos_x = 0,
+    .pos_y = 0,
+    .height = 40,
+    .color = 0xffff0000,
+    .children = NULL,
+    .order = 0
 };
 
-struct music_track album_1 = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music album_1",
-        .draw = draw_music_album,
-        .pos_x = 0,
-        .pos_y = 40,
-        .height = 40,
-        .color = 0xffff0000,
-        .children = NULL,
-    },
-    .position = 1
+struct ui_panel album_1 = {
+    .type = PANEL_LIST_ENTRY,
+    .name = "music album_1",
+    .draw = draw_music_album,
+    .pos_x = 0,
+    .pos_y = 40,
+    .height = 40,
+    .color = 0xffff0000,
+    .children = NULL,
+    .order = 1
 };
 
-struct music_track album_2 = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music album_2",
-        .draw = draw_music_album,
-        .pos_x = 0,
-        .pos_y = 80,
-        .height = 40,
-        .color = 0xffff0000,
-        .children = NULL,
-    },
-    .position = 2
+struct ui_panel album_2 = {
+    .type = PANEL_LIST_ENTRY,
+    .name = "music album_2",
+    .draw = draw_music_album,
+    .pos_x = 0,
+    .pos_y = 80,
+    .height = 40,
+    .color = 0xffff0000,
+    .children = NULL,
+    .order = 2
 };
 
-struct music_track album_3 = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music album_3",
-        .draw = draw_music_album,
-        .pos_x = 0,
-        .pos_y = 120,
-        .height = 40,
-        .color = 0xffff0000,
-        .children = NULL,
-    },
-    .position = 3
+struct ui_panel album_3 = {
+    .type = PANEL_LIST_ENTRY,
+    .name = "music album_3",
+    .draw = draw_music_album,
+    .pos_x = 0,
+    .pos_y = 120,
+    .height = 40,
+    .color = 0xffff0000,
+    .children = NULL,
+    .order = 3
 };
 
-struct music_track album_4 = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music album_4",
-        .draw = draw_music_album,
-        .pos_x = 0,
-        .pos_y = 160,
-        .height = 40,
-        .color = 0xffff0000,
-        .children = NULL,
-    },
-    .position = 4
+struct ui_panel album_4 = {
+    .type = PANEL_LIST_ENTRY,
+    .name = "music album_4",
+    .draw = draw_music_album,
+    .pos_x = 0,
+    .pos_y = 160,
+    .height = 40,
+    .color = 0xffff0000,
+    .children = NULL,
+    .order = 4
 };
 
-struct music_track album_5 = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music album_5",
-        .draw = draw_music_album,
-        .pos_x = 0,
-        .pos_y = 200,
-        .height = 40,
-        .color = 0xffff0000,
-        .children = NULL,
-    },
-    .position = 5
+struct ui_panel album_5 = {
+    .type = PANEL_LIST_ENTRY,
+    .name = "music album_5",
+    .draw = draw_music_album,
+    .pos_x = 0,
+    .pos_y = 200,
+    .height = 40,
+    .color = 0xffff0000,
+    .children = NULL,
+    .order = 5
 };
 
-struct music_track album_6 = {
-    .panel = {
-        .type = PANEL_LIST_ENTRY,
-        .name = "music album_6",
-        .draw = draw_music_album,
-        .pos_x = 0,
-        .pos_y = 240,
-        .height = 40,
-        .color = 0xffff0000,
-        .children = NULL,
-    },
-    .position = 6
+struct ui_panel album_6 = {
+    .type = PANEL_LIST_ENTRY,
+    .name = "music album_6",
+    .draw = draw_music_album,
+    .pos_x = 0,
+    .pos_y = 240,
+    .height = 40,
+    .color = 0xffff0000,
+    .children = NULL,
+    .order = 6
 };
 
 
@@ -145,21 +130,21 @@ struct music_track album_6 = {
 static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_t s)
 {
     (void) s;
-    struct music_track **children = (struct music_track**)p->children;
+    struct ui_panel **children = (struct ui_panel**)p->children;
 
     if (!children) {
         return false;
     }
-    struct music_track *first = *children, *entry, *prev;
+    struct ui_panel *first = *children, *entry, *prev;
 
     while ((entry = *children++)) {
-        if (entry->panel.focused) {
+        if (entry->focused) {
             switch (key) {
                 case MZD_KEYMAP_ROTATE_LEFT: {
                     if (entry != first) {
                         LOG_T("move to prev\n");
-                        prev->panel.focused = true;
-                        entry->panel.focused = false;
+                        prev->focused = true;
+                        entry->focused = false;
                     } else {
                         LOG_D("already at beginning\n");
                         if (albums_skip) {
@@ -170,9 +155,9 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                 }
                 case MZD_KEYMAP_ROTATE_RIGHT: {
                     if (*children) {
-                        LOG_T("move to next %s\n", (*children)->panel.name);
-                        (*children)->panel.focused = true;
-                        entry->panel.focused = false;
+                        LOG_T("move to next %s\n", (*children)->name);
+                        (*children)->focused = true;
+                        entry->focused = false;
                     } else {
                         LOG_D("already at end\n");
                         albums_skip++;
@@ -180,11 +165,11 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
                     break;
                 }
                 case MZD_KEYMAP_DPAD_CENTER: {
-                    LOG_D("play this one %s\n", entry->panel.name);
+                    LOG_D("play this one %s\n", entry->name);
                     // if (track_get_pos(entry->position)) {
                     //     postmsg_audio(AMSG_PLAY, track_get_pos(entry->position));
                     // } else {
-                    //     LOG_E("No track found here %s\n", entry->panel.name);
+                    //     LOG_E("No track found here %s\n", entry->name);
                     // }
                     break;
                 }
@@ -201,7 +186,7 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
     }
 
     LOG_D("focus not found\n");
-    first->panel.focused = true;
+    first->focused = true;
     return false;
 }
 

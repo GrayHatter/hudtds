@@ -36,6 +36,7 @@ struct ui_panel {
     PANEL_TYPE type;
 
     char *name;
+    uint8_t order;
 
     touch_dn *t_dn;
     touch_up *t_mv;
@@ -55,6 +56,7 @@ struct ui_panel {
     int32_t width;
     int32_t height;
 
+    // TODO probably removed, unused
     struct ui_panel *prev;
     struct ui_panel *next;
 
