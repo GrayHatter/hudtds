@@ -1,6 +1,6 @@
 #include "gps_gui.h"
 
-#include "../wl/ui.h"
+#include "../ui.h"
 #include "../wl/text.h"
 #include "../wl/draw.h"
 #include "../log.h"
@@ -32,29 +32,29 @@ static void draw_gps_data(struct ui_panel *p, int32_t x, int32_t y, int32_t w, i
 
     struct hud_gps_data *data = gps_get_data();
     if (!data) {
-        text_draw_string("ERROR, unable to get gps data!", x + 2, y + 20);
+        text_string("ERROR, unable to get gps data!", x + 2, y + 20);
         return;
     }
 
     static char str[1024] = {0};
 
     snprintf(str, sizeof str, "LAT: %lf", data->lat);
-    text_draw_string(str, x + 2, y + 10);
+    text_string(str, x + 2, y + 10);
 
     snprintf(str, sizeof str, "LON: %lf", data->lon);
-    text_draw_string(str, x + 2, y + 30);
+    text_string(str, x + 2, y + 30);
 
     snprintf(str, sizeof str, "ALT: %lf", data->alt);
-    text_draw_string(str, x + 2, y + 50);
+    text_string(str, x + 2, y + 50);
 
     snprintf(str, sizeof str, "Ground Speed: %.2lf", data->gnd_speed);
-    text_draw_string(str, x + 2, y + 90);
+    text_string(str, x + 2, y + 90);
 
     snprintf(str, sizeof str, "Climb Speed: %.2lf", data->vert_speed);
-    text_draw_string(str, x + 2, y + 120);
+    text_string(str, x + 2, y + 120);
 
     snprintf(str, sizeof str, "Satellites: %i (%i)", data->satellites_visible, data->satellites_used);
-    text_draw_string(str, x + 2, y + 150);
+    text_string(str, x + 2, y + 150);
 
     free(data);
 }
@@ -91,7 +91,7 @@ struct ui_panel gps_data = {
     .name = "gps_frame",
     .draw = draw_gps_data,
     .focused = false,
-    .disabled = false,
+    .enabled = true,
     .pos_x = 0,
     .pos_y = 0,
     .width = 530,
@@ -102,7 +102,7 @@ struct ui_panel gps_globe = {
     .name = "gps_frame",
     .draw = draw_gps_globe,
     .focused = false,
-    .disabled = false,
+    .enabled = true,
     .pos_x = 530,
     .pos_y = 0,
     .width = 270,
@@ -113,7 +113,7 @@ struct ui_panel gps_frame = {
     .name = "gps_frame",
     .draw = draw_gps_frame,
     .focused = false,
-    .disabled = true,
+    .enabled = false,
     .pos_x = 0,
     .pos_y = 0,
     .children = (struct ui_panel*[]) {

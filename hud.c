@@ -5,6 +5,7 @@
 
 #include "audio.h"
 #include "gps.h"
+#include "bluetooth.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -40,6 +41,8 @@ int main(void)
 
     LOG_D("Starting GPS Thread\n");
     gps_thread_start();
+
+    // bluetooth_thread_start();
 
     while (!done) {
         if (do_wayland() < 0) {

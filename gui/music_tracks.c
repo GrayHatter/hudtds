@@ -1,6 +1,6 @@
 #include "music.h"
 
-#include "../wl/ui.h"
+#include "../ui.h"
 #include "../wl/draw.h"
 #include "../wl/text.h"
 #include "../wl/keyboard.h"
@@ -75,13 +75,14 @@ static void draw_music_track(struct ui_panel *p, int32_t x, int32_t y, int32_t w
     draw_box_depth_c(x, y, w, y + p->height, 2, 0xff440000);
 
     const struct track_data *track = track_get_pos(p->order);
-    text_draw_string_width(entry_text(track), x + 8, y + 8, w - 8);
+    text_string_width(entry_text(track), x + 8, y + 8, w - 8);
 }
 
 
 struct ui_panel music_track_0 = {
     .type = PANEL_LIST_ENTRY,
     .name = "music entry_0",
+    .enabled = true,
     .draw = draw_music_track,
     .pos_x = 0,
     .pos_y = 0,
@@ -94,6 +95,7 @@ struct ui_panel music_track_0 = {
 struct ui_panel music_track_1 = {
     .type = PANEL_LIST_ENTRY,
     .name = "music entry_1",
+    .enabled = true,
     .draw = draw_music_track,
     .pos_x = 0,
     .pos_y = 40,
@@ -106,6 +108,7 @@ struct ui_panel music_track_1 = {
 struct ui_panel music_track_2 = {
     .type = PANEL_LIST_ENTRY,
     .name = "music entry_2",
+    .enabled = true,
     .draw = draw_music_track,
     .pos_x = 0,
     .pos_y = 80,
@@ -118,6 +121,7 @@ struct ui_panel music_track_2 = {
 struct ui_panel music_track_3 = {
     .type = PANEL_LIST_ENTRY,
     .name = "music entry_3",
+    .enabled = true,
     .draw = draw_music_track,
     .pos_x = 0,
     .pos_y = 120,
@@ -130,6 +134,7 @@ struct ui_panel music_track_3 = {
 struct ui_panel music_track_4 = {
     .type = PANEL_LIST_ENTRY,
     .name = "music entry_4",
+    .enabled = true,
     .draw = draw_music_track,
     .pos_x = 0,
     .pos_y = 160,
@@ -142,6 +147,7 @@ struct ui_panel music_track_4 = {
 struct ui_panel music_track_5 = {
     .type = PANEL_LIST_ENTRY,
     .name = "music entry_5",
+    .enabled = true,
     .draw = draw_music_track,
     .pos_x = 0,
     .pos_y = 200,
@@ -154,6 +160,7 @@ struct ui_panel music_track_5 = {
 struct ui_panel music_track_6 = {
     .type = PANEL_LIST_ENTRY,
     .name = "music entry_6",
+    .enabled = true,
     .draw = draw_music_track,
     .pos_x = 0,
     .pos_y = 240,
@@ -232,12 +239,13 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
 struct ui_panel music_tracks_frame = {
     .type = PANEL_LIST,
     .name = "music entry frame",
+    .enabled = true,
+    .focused = true,
+    .k_dn = frame_key_down,
     .pos_x = 0,
     .pos_y = 60,
     .width = -80,
     .height = -80,
-    .k_dn = frame_key_down,
-    .focused = true,
     .children = (struct ui_panel*[]) {
         (struct ui_panel*)&music_track_0,
         (struct ui_panel*)&music_track_1,

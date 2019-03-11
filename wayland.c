@@ -3,7 +3,7 @@
 #include "hud.h"
 #include "log.h"
 
-#include "wl/ui.h"
+#include "ui.h"
 #include "wl/ivi.h"
 #include "wl/seat.h"
 #include "wl/draw.h"
@@ -117,10 +117,9 @@ static struct surface *init_memory_pool(struct surface *surface)
         exit(1);
     }
 
-    LOG_E("write\n");
     memset(surface->memory, 0xff, surface->mem_capacity);
-
     draw_swap_buffer(root_surface->memory);
+    LOG_E("write\n");
 
     // // memset(surface->memory, 0x00, HEIGHT * STRIDE);
     // uint32_t *p = surface->memory;
@@ -251,6 +250,14 @@ struct wl_display *init_wayland(void)
     wl_shell_surface_set_toplevel(root_surface->shell_surface);
     wl_shell_surface_set_fullscreen(root_surface->shell_surface, WL_SHELL_SURFACE_FULLSCREEN_METHOD_DEFAULT, 0, NULL);
 
+    // HACK FIXME leave this here until we handle partial draws correctly
+    ui_iter(NULL);
+    hud_surface_damage(0, 0, WIDTH, HEIGHT);
+    hud_surface_commit();
+    ui_iter(NULL);
+    hud_surface_damage(0, 0, WIDTH, HEIGHT);
+    hud_surface_commit();
+
     return display;
 }
 
@@ -258,6 +265,7 @@ struct wl_display *init_wayland(void)
 int do_wayland(void)
 {
     if (ui_iter(NULL)) {
+        // FIXME ui_iter should be calling surface damage, only when
         hud_surface_damage(0, 0, WIDTH, HEIGHT);
         hud_surface_commit();
     }

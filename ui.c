@@ -1,13 +1,13 @@
 #include "ui.h"
 
-#include "draw.h"
-#include "text.h"
+#include "wl/draw.h"
+#include "wl/text.h"
 
-#include "../hud.h"
-#include "../log.h"
-#include "../wayland.h"
+#include "hud.h"
+#include "log.h"
+#include "wayland.h"
 
-#include "../gui/root.h"
+#include "gui/root.h"
 
 #include <stdlib.h>
 
@@ -34,7 +34,7 @@ bool ui_touch_down(struct ui_panel *panel, const int mx, const int my, const int
     if (children) {
         struct ui_panel *p;
         while ((p = *children++)) {
-            if (p->disabled) {
+            if (!p->enabled) {
                 continue;
             }
 
@@ -69,7 +69,7 @@ bool ui_touch_up(struct ui_panel *panel, const int x, const int y, const uint32_
     if (children) {
         struct ui_panel *p;
         while ((p = *children++)) {
-            if (p->disabled) {
+            if (!p->enabled) {
                 continue;
             }
 
@@ -179,9 +179,10 @@ bool ui_panel_draw(struct ui_panel *panel, int32_t x, int32_t y, int32_t w, int3
         int32_t l_x = x, l_y = y, l_w = w, l_h = h;
         XYWH_TO_CHILD();
         while ((p = *--children)) {
-            if (!p->disabled) {
+            if (p->enabled) {
                 redraw |= ui_panel_draw(p, l_x, l_y, l_w, l_h);
             }
+
             if (p == first) {
                 break;
             }

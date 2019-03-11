@@ -2,7 +2,8 @@
 
 
 #include "../log.h"
-#include "../wl/ui.h"
+#include "../ui.h"
+
 #include "../wl/draw.h"
 #include "../wl/text.h"
 
@@ -39,7 +40,8 @@ static void draw_timedate(struct ui_panel *p, int32_t x, int32_t y, int32_t w, i
     h = p->height <= 0 ? h + p->height : y + p->height;
 
     // draw_box_c(x, y, w, h, p->color);
-    text_draw_string("20:48", x + 3, y + 3);
+    // text_string_ralign("20:48", w, y + 3);
+    text_string_ralign("20:48", x + 3, y + 3);
 }
 
 
@@ -68,6 +70,7 @@ struct ui_panel notifier = {
     .pos_x = 0,
     .pos_y = 0,
     .height = 35,
+    .enabled = true,
     .children = (struct ui_panel*[]){
         &notifications,
         &time_date,

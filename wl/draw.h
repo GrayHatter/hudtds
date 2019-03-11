@@ -5,6 +5,9 @@
 #include <stdbool.h>
 
 
+void draw_reset_clipping_box(void);
+void draw_set_clipping_box(int32_t x, int32_t y, int32_t w, int32_t h);
+
 void draw_swap_buffer(uint32_t *buffer);
 
 bool draw_pixel(int32_t x, int32_t y, uint32_t c);

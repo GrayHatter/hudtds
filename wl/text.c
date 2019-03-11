@@ -13,20 +13,21 @@ static FT_Face face = NULL;
 #define CURRENT_FACE_HEIGHT face->height / 64
 
 
-void draw_char(FT_Bitmap *bm, uint32_t x, uint32_t y)
+void draw_char_c(FT_Bitmap *bm, uint32_t x, uint32_t y, uint32_t c)
 {
     uint8_t *g = bm->buffer;
     uint32_t d;
     for (uint32_t i = 0; i < bm->rows; i++) {
         for (uint32_t j = 0; j < bm->width; j++) {
             if (*g) {
-                d = 0xff000000 | (*g) << 16 | (*g) << 8 | *g;
+                d = (0xff000000 | c) & ((*g) << 16 | (*g) << 8 | *g);
                 draw_pixel(x + j, y + i, d);
             }
             g++;
         }
     }
 }
+
 
 void init_text(void)
 {
@@ -42,7 +43,7 @@ void init_text(void)
 }
 
 
-void text_draw_string(const char *string, uint32_t x, uint32_t y)
+void text_string_c(const char *string, uint32_t x, uint32_t y, uint32_t c)
 {
     if (!string) {
         return;
@@ -56,14 +57,14 @@ void text_draw_string(const char *string, uint32_t x, uint32_t y)
         FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
         FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
         if (x + face->glyph->bitmap_left + face->glyph->bitmap.width < WIDTH) {
-            draw_char(&face->glyph->bitmap, x + face->glyph->bitmap_left, y - face->glyph->bitmap_top);
+            draw_char_c(&face->glyph->bitmap, x + face->glyph->bitmap_left, y - face->glyph->bitmap_top, c);
         }
         x += face->glyph->advance.x >> 6;
     }
 }
 
 
-void text_draw_string_width(const char *string, uint32_t x, uint32_t y, uint32_t w)
+void text_string_width_c(const char *string, uint32_t x, uint32_t y, uint32_t w, uint32_t c)
 {
     if (!string) {
         return;
@@ -77,9 +78,34 @@ void text_draw_string_width(const char *string, uint32_t x, uint32_t y, uint32_t
         FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
 
         if (x + face->glyph->bitmap_left + face->glyph->bitmap.width < w) {
-            draw_char(&face->glyph->bitmap, x + face->glyph->bitmap_left, y - face->glyph->bitmap_top);
+            draw_char_c(&face->glyph->bitmap, x + face->glyph->bitmap_left, y - face->glyph->bitmap_top, c);
         }
 
         x += face->glyph->advance.x >> 6;
     }
+}
+
+
+void text_string(const char *string, uint32_t x, uint32_t y)
+{
+    text_string_c(string, x, y, 0xffffffff);
+}
+
+
+void text_string_width(const char *string, uint32_t x, uint32_t y, uint32_t w)
+{
+    text_string_width_c(string, x, y, w, 0xffffffff);
+}
+
+
+void text_string_ralign(const char *string, uint32_t right, uint32_t y)
+{
+    // FIXME doesn't actually ralign :P
+    text_string_c(string, right, y, 0xffffffff);
+}
+
+void text_string_ralign_width(const char *string, uint32_t right, uint32_t y, uint32_t max_left)
+{
+    // FIXME doesn't actually ralign :P
+    text_string_width_c(string, right, y, max_left, 0xffffffff);
 }

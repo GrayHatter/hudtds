@@ -8,12 +8,13 @@ LD = arm-linux-gnueabihf-ld
 # LD = clang
 
 OBJ = hud.o
-OBJ += wayland.o wl/info.o wl/keyboard.o wl/touch.o wl/draw.o wl/ui.o wl/text.o wl/ivi.o wl/seat.o
-OBJ += gps.o
+OBJ += ui.o
+OBJ += wayland.o wl/info.o wl/keyboard.o wl/touch.o wl/draw.o  wl/text.o wl/ivi.o wl/seat.o
+OBJ += gps.o bluetooth.o
 OBJ += audio.o audio_search.o
 
-
 OBJ += gui/root.o gui/nav.o gui/notifier.o gui/onscreenkeys.o
+OBJ += gui/settings_gui.o
 OBJ += gui/gps_gui.o
 OBJ += gui/music.o gui/music_tracks.o gui/music_buttons.o gui/music_artists.o gui/music_albums.o
 
@@ -48,6 +49,7 @@ LIBS   +=  -lwayland-ivi-shell-client -lwayland-ivi-client
 LIBS   +=  -lwayland-client
 LIBS   +=  -lavcodec -lavutil -lavformat -lswresample -lasound
 LIBS   +=  -lgps
+LIBS   +=  -lbluetooth
 LIBS   +=  -lffi -ldl -lrt -lpthread -lm
 
 %.o: %.c %.h

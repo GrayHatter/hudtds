@@ -1,6 +1,7 @@
 #include "music.h"
 
-#include "../wl/ui.h"
+#include "../ui.h"
+
 #include "../wl/draw.h"
 #include "../wl/text.h"
 #include "../wl/keyboard.h"
@@ -29,9 +30,9 @@ static void draw_music_playing(struct ui_panel *p, int32_t x, int32_t y, int32_t
 
     struct track_data *track = audio_track_get_current();
     if (track) {
-        text_draw_string(track->filename, x + 3, y + 3);
+        text_string(track->filename, x + 3, y + 3);
     } else {
-        text_draw_string("No Song Playing", x + 3, y + 3);
+        text_string("No Song Playing", x + 3, y + 3);
     }
 }
 
@@ -57,6 +58,7 @@ struct ui_panel music_track_playing = {
     .name = "music entry playing",
     .draw = draw_music_playing,
     .k_dn = music_playing_kdn,
+    .enabled = true,
     .pos_x = 0,
     .pos_y = 0,
     .height = 60,
@@ -95,23 +97,23 @@ static bool frame_key_down_main(struct ui_panel *panel, const uint32_t key, cons
         }
         case MZD_KEYMAP_DPAD_LEFT: {
             LOG_T("music_frame_keydown dpad left\n");
-            if (music_buttons_frame.focused == true) {
-                return false;
-            } else {
-                music_buttons_frame.focused = true;
-                music_track_playing.focused = false;
-                music_tracks_frame.focused = false;
-                return true;
-            }
-        }
-        case MZD_KEYMAP_DPAD_RIGHT: {
-            LOG_T("music_frame_keydown dpad right\n");
             if (music_tracks_frame.focused == true) {
                 return false;
             } else {
                 music_tracks_frame.focused = true;
                 music_track_playing.focused = false;
                 music_buttons_frame.focused = false;
+                return true;
+            }
+        }
+        case MZD_KEYMAP_DPAD_RIGHT: {
+            LOG_T("music_frame_keydown dpad right\n");
+            if (music_buttons_frame.focused == true) {
+                return false;
+            } else {
+                music_buttons_frame.focused = true;
+                music_track_playing.focused = false;
+                music_tracks_frame.focused = false;
                 return true;
             }
         }
@@ -128,7 +130,7 @@ struct ui_panel music_frame = {
     .height = -80,
     .k_dn = frame_key_down_main,
     .focused = true,
-    .disabled = false,
+    .enabled = true,
 
     .children = (struct ui_panel*[]) {
         (struct ui_panel*)&music_track_playing,

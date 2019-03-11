@@ -25,7 +25,6 @@ typedef enum {
     PANEL_LIST,
     PANEL_LIST_ENTRY,
 
-
     PANEL_OTHER,
     PANEL_MAX = 255
 } PANEL_TYPE;
@@ -49,7 +48,7 @@ struct ui_panel {
 
     bool focused;
     bool touch_focus;
-    bool disabled;
+    bool enabled;
 
     int32_t pos_x;
     int32_t pos_y;

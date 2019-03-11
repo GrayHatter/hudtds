@@ -4,10 +4,11 @@
 #include "music.h"
 #include "nav.h"
 #include "gps_gui.h"
+#include "settings_gui.h"
 // #include "onscreenkeys.h"
 
 #include "../wl/keyboard.h"
-#include "../wl/ui.h"
+#include "../ui.h"
 #include "../wl/text.h"
 #include "../wl/draw.h"
 #include "../log.h"
@@ -23,9 +24,22 @@ static void draw_root_frame(struct ui_panel *p, int32_t x, int32_t y, int32_t w,
     (void) h;
 
     draw_square(x, y, w, h);
-    text_draw_string("HudTds!", 2, 2);
+    text_string("HudTds!", 2, 2);
 }
 
+
+
+static void _disable_all(struct ui_panel *main)
+{
+    struct ui_panel **children = main->children;
+    struct ui_panel *p;
+
+    while ((p = *children++)) {
+        p->enabled = false;
+        p->focused = false;
+    }
+
+}
 
 static bool main_kdn(struct ui_panel *p, const uint32_t key, const uint32_t s)
 {
@@ -35,21 +49,23 @@ static bool main_kdn(struct ui_panel *p, const uint32_t key, const uint32_t s)
     switch (key) {
         case MZD_KEYMAP_EXT_MUSIC: {
             LOG_E("main frame music btn\n");
-            music_frame.disabled = false;
+            _disable_all(p);
+            music_frame.enabled = true;
             music_frame.focused = true;
-
-            gps_frame.disabled = true;
-            gps_frame.focused = false;
-
             return true;
         }
         case MZD_KEYMAP_EXT_NAV: {
             LOG_E("main frame nav btn\n");
-            gps_frame.disabled = false;
+            _disable_all(p);
+            gps_frame.enabled = true;
             gps_frame.focused = true;
-
-            music_frame.disabled = true;
-            music_frame.focused = false;
+            return true;
+        }
+        case MZD_KEYMAP_EXT_HOME: {
+            LOG_E("main frame nav btn\n");
+            _disable_all(p);
+            settings_frame.enabled = true;
+            settings_frame.focused = true;
             return true;
         }
     }
@@ -57,10 +73,11 @@ static bool main_kdn(struct ui_panel *p, const uint32_t key, const uint32_t s)
 }
 
 
-struct ui_panel main_frame = {
+static struct ui_panel main_frame = {
     .name = "main frame",
     .draw = draw_root_frame,
     .focused = true,
+    .enabled = true,
     .k_dn = main_kdn,
     .pos_x = 0,
     .pos_y = 35,
@@ -80,6 +97,7 @@ struct ui_panel root_panel = {
     .width = WIDTH - 1,
     .height = HEIGHT - 1,
     .focused = true,
+    .enabled = true,
 
     .children = (struct ui_panel*[]){
         &notifier,

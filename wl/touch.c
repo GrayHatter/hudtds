@@ -1,8 +1,8 @@
 #include "touch.h"
 
 #include "draw.h"
-#include "ui.h"
 
+#include "../ui.h"
 #include "../hud.h"
 #include "../wayland.h"
 #include "../log.h"

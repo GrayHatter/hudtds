@@ -1,6 +1,6 @@
 #include "music.h"
 
-#include "../wl/ui.h"
+#include "../ui.h"
 #include "../wl/draw.h"
 #include "../wl/text.h"
 #include "../wl/keyboard.h"
@@ -37,7 +37,7 @@ static void draw_music_album(struct ui_panel *p, int32_t x, int32_t y, int32_t w
         draw_box_c(x, y, w, y + p->height, p->color);
     }
 
-    text_draw_string(album->name, x + 3, y + 3);
+    text_string(album->name, x + 3, y + 3);
 }
 
 
@@ -194,12 +194,13 @@ static bool frame_key_down(struct ui_panel *p, const uint32_t key, const uint32_
 struct ui_panel music_albums_frame = {
     .type = PANEL_LIST,
     .name = "music artist frame",
-    .pos_x = 80,
+    .pos_x = 0,
     .pos_y = 60,
+    .width = -80,
     .height = -80,
     .k_dn = frame_key_down,
     .focused = false,
-    .disabled = true,
+    .enabled = false,
     .children = (struct ui_panel*[]) {
         (struct ui_panel*)&album_0,
         (struct ui_panel*)&album_1,

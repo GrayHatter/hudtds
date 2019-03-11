@@ -75,7 +75,7 @@ static void ivi_shell_create(void *data, struct wl_interface *interface, char *n
             wl_proxy_marshal(ani_grp, IVI_SHELL_ANIMATION_GROUP_ANIMATE_CUBICBEZIER2d, name,
                 IVI_SHELL_ANIMATE_CUBICEBZIER2D_POSITION, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0);
 
-            wl_fixed_t o = wl_fixed_from_double(2);
+            wl_fixed_t o = wl_fixed_from_double(1);
             wl_proxy_marshal(ani_grp, IVI_SHELL_ANIMATION_GROUP_ANIMATE_CUBICBEZIER2d, name,
                 IVI_SHELL_ANIMATE_CUBICEBZIER2D_SET_ORIGIN, 0, 0, o, o, o, o, o, o, 0, 0);
             wl_fixed_t w = wl_fixed_from_double(WIDTH);

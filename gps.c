@@ -10,12 +10,9 @@
 #include <gps.h>
 #include <errno.h>
 
-#define _TENTH_SEC 1000 * 1000 * 100
-
 
 static bool gps_running = false;
 static bool gps_exit = false;
-
 
 static struct hud_gps_data hud_gps_data;
 
@@ -52,9 +49,7 @@ static void *gps_thread(void *p)
         LOG_E("Early exit from gps thread!\n");
         return NULL;
     }
-
     struct gps_data_t *gps = p;
-    LOG_E("pointer %p\n", gps);
 
     gps_running = true;
 
@@ -111,7 +106,6 @@ void gps_thread_start(void)
     LOG_E("gps thread starting up\n");
 
     struct gps_data_t *gps  = gps_init();
-    LOG_E("pointer %p\n", gps);
     pthread_create(&t, NULL, gps_thread, gps);
 }
 

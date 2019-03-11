@@ -37,19 +37,16 @@ static uint32_t *draw_buffer = NULL;
 }  while(0)
 
 
-struct clipping_box_t {
+static struct clipping_box_t {
     bool set;
     int32_t x;
     int32_t y;
     int32_t w;
     int32_t h;
-};
+} clip_box = {0};
 
 
-static struct clipping_box_t clip_box = {0};
-
-
-void reset_cliping_box()
+void draw_reset_clipping_box(void)
 {
     if (clip_box.set) {
         // do cliping box memcpy
@@ -63,10 +60,10 @@ void reset_cliping_box()
 }
 
 
-void set_cliping_box(int32_t x, int32_t y, int32_t w, int32_t h)
+void draw_set_clipping_box(int32_t x, int32_t y, int32_t w, int32_t h)
 {
     if (x == w || y == h) {
-        reset_cliping_box();
+        draw_reset_clipping_box();
         return;
     }
 
@@ -288,8 +285,8 @@ void draw_circle_radius_c(int32_t x, int32_t y, int32_t radius, uint32_t c)
     double r = radius - 0.5;
     int32_t ax = x - r;
     int32_t ay = y - r;
-    for (int i = 0; i < r * 2; i++) {
-        for (int j = 0; j < r * 2; j++) {
+    for (int i = 0; i < radius * 2; i++) {
+        for (int j = 0; j < radius * 2; j++) {
             double di = i - r;
             double dj = j - r;
             double mix = sqrtf(di * di + dj * dj) - r + 0.5;

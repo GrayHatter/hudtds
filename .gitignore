@@ -3,6 +3,11 @@
 *.mp4
 *.o
 *.bak
+*.txt
+*.out
+*.otf
+
+3rd-party-includes/**
 
 hudtds
 

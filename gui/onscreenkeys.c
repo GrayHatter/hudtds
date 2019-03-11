@@ -1,6 +1,6 @@
 #include "onscreenkeys.h"
 
-#include "../wl/ui.h"
+#include "../ui.h"
 
 #include <stdlib.h>
 
@@ -220,7 +220,7 @@ static struct ui_panel onscreenkey_row_3 = {
 struct ui_panel onscreenkey_frame = {
     .type = PANEL_FRAME,
     .name = "onscreenkeys frame",
-    .disabled = true,
+    .enabled = false,
 
     .pos_x = 0,
     .pos_y = 0,

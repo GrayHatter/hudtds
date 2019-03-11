@@ -2,7 +2,7 @@
 
 #include "onscreenkeys.h"
 
-#include "../wl/ui.h"
+#include "../ui.h"
 #include "../wl/draw.h"
 
 #include "../log.h"
@@ -43,9 +43,10 @@ static void draw_button(struct ui_panel *p, int32_t x, int32_t y, int32_t w, int
 #define NAV_BTW_H 65
 
 struct ui_panel nav_btn_0 = {
-    .draw = draw_button,
-    .color = 0xff888888,
     .name = "nav_btn_0",
+    .enabled = true,
+    .color = 0xff888888,
+    .draw = draw_button,
     .t_dn = touch_test_1,
     .pos_x = NAV_BTW_W * 0,
     .pos_y = 0,
@@ -54,9 +55,10 @@ struct ui_panel nav_btn_0 = {
 };
 
 struct ui_panel nav_btn_1 = {
-    .draw = draw_button,
-    .color = 0xffff0000,
     .name = "nav_btn_1",
+    .enabled = true,
+    .color = 0xffff0000,
+    .draw = draw_button,
     .t_dn = touch_test_1,
     .pos_x =NAV_BTW_W * 1,
     .pos_y = 0,
@@ -65,9 +67,10 @@ struct ui_panel nav_btn_1 = {
 };
 
 struct ui_panel nav_btn_2 = {
-    .draw = draw_button,
-    .color = 0xffffffff,
     .name = "nav_btn_2",
+    .enabled = true,
+    .color = 0xffffffff,
+    .draw = draw_button,
     .t_dn = touch_test_1,
     .pos_x = NAV_BTW_W * 2,
     .pos_y = 0,
@@ -76,9 +79,10 @@ struct ui_panel nav_btn_2 = {
 };
 
 struct ui_panel nav_btn_3 = {
-    .draw = draw_button,
-    .color = 0xff00ff00,
     .name = "nav_btn_3",
+    .enabled = true,
+    .color = 0xff00ff00,
+    .draw = draw_button,
     .t_dn = touch_test_1,
     .pos_x = NAV_BTW_W * 3,
     .pos_y = 0,
@@ -87,9 +91,10 @@ struct ui_panel nav_btn_3 = {
 };
 
 struct ui_panel nav_btn_4 = {
-    .draw = draw_button,
-    .color = 0xff00ffff,
     .name = "nav_btn_4",
+    .enabled = true,
+    .color = 0xff00ffff,
+    .draw = draw_button,
     .t_dn = touch_test_1,
     .pos_x = NAV_BTW_W * 4,
     .pos_y = 0,
@@ -98,9 +103,10 @@ struct ui_panel nav_btn_4 = {
 };
 
 struct ui_panel nav_btn_5 = {
-    .draw = draw_button,
-    .color = 0xffff00ff,
     .name = "nav_btn_5",
+    .enabled = true,
+    .color = 0xffff00ff,
+    .draw = draw_button,
     .t_dn = touch_test_1,
     .pos_x = NAV_BTW_W * 5,
     .pos_y = 0,
@@ -143,16 +149,17 @@ static bool tgl_keys(struct ui_panel *p, const int mx, const int my, const int x
     (void) id;
     (void) serial;
 
-    onscreenkey_frame.disabled = !onscreenkey_frame.disabled;
+    onscreenkey_frame.enabled = !onscreenkey_frame.enabled;
 
     return true;
 }
 
 
 static struct ui_panel nav_btn_8 = {
-    .draw = draw_button,
-    .color = 0xff8888ff,
     .name = "nav_btn_8",
+    .color = 0xff8888ff,
+    .enabled = true,
+    .draw = draw_button,
     .t_dn = tgl_keys,
     .pos_x = NAV_BTW_W * 8,
     .pos_y = 0,
@@ -181,9 +188,10 @@ static bool touch_exit(struct ui_panel *p, const int mx, const int my, const int
 
 
 struct ui_panel nav_btn_9 = {
-    .draw = draw_button,
-    .color = 0xff333333,
     .name = "nav_btn_9",
+    .color = 0xff333333,
+    .enabled = true,
+    .draw = draw_button,
     .t_dn = touch_exit,
     .pos_x = NAV_BTW_W * 9,
     .pos_y = 0,
@@ -193,9 +201,10 @@ struct ui_panel nav_btn_9 = {
 
 
 struct ui_panel nav_frame = {
-    .draw = draw_button,
     .type = PANEL_FRAME,
     .name = "nav frame",
+    .enabled = true,
+    .draw = draw_button,
     .pos_x = 0,
     .pos_y = -NAV_BTW_H,
     .height = NAV_BTW_H,
